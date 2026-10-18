@@ -35,8 +35,8 @@ const objects: SceneObject[] = [
   { id: 'strawberry', sprite: 'forest/strawberry', rect: { x: 42, y: 57, w: 6.5, h: 8 }, z: 3, voice: { name: 'strawberry_name', fact: 'strawberry_fact', echo: 'strawberry_echo' }, sfx: 'pop', tags: { kind: 'plant', color: 'red', size: 'small', action: 'grow', place: 'in_grass' }, findable: true, reaction: 'hop' },
   { id: 'bear', sprite: 'forest/bear', rect: { x: 50, y: 66, w: 10, h: 17 }, z: 3, voice: v('bear', { ask: 'bear_ask', helped: 'bear_helped' }), sfx: 'grunt', tags: { kind: 'animal', color: 'brown', size: 'big', action: 'sit', place: 'on_path', emotion: 'sad' }, findable: true, reaction: 'wiggle' },
   { id: 'bunny', sprite: 'forest/bunny', rect: { x: 60, y: 76, w: 7, h: 12 }, z: 3, voice: v('bunny', { ask: 'bunny_ask' }), sfx: 'pop', tags: { kind: 'animal', color: 'white', size: 'small', action: 'jump', place: 'in_grass', emotion: 'happy' }, findable: true, reaction: 'hop' },
-  { id: 'snail', sprite: 'forest/snail', rect: { x: 23, y: 89, w: 6.5, h: 8 }, z: 4, voice: v('snail'), sfx: 'bubble', tags: { kind: 'animal', color: 'yellow', size: 'small', action: 'crawl', place: 'on_path', emotion: 'calm' }, findable: true, reaction: 'wiggle' },
-  { id: 'fox', sprite: 'forest/fox', rect: { x: 9, y: 89, w: 11, h: 10 }, z: 4, voice: v('fox', { ask: 'fox_ask' }), sfx: 'grunt', tags: { kind: 'animal', color: 'orange', size: 'medium', action: 'sleep', place: 'behind_bush', emotion: 'sleepy' }, findable: true, reaction: 'shake' },
+  { id: 'snail', sprite: 'forest/snail', rect: { x: 45, y: 82, w: 6.5, h: 8 }, z: 4, voice: v('snail'), sfx: 'bubble', tags: { kind: 'animal', color: 'yellow', size: 'small', action: 'crawl', place: 'on_path', emotion: 'calm' }, findable: true, reaction: 'wiggle' },
+  { id: 'fox', sprite: 'forest/fox', rect: { x: 20, y: 90, w: 11, h: 10 }, z: 4, voice: v('fox', { ask: 'fox_ask' }), sfx: 'grunt', tags: { kind: 'animal', color: 'orange', size: 'medium', action: 'sleep', place: 'behind_bush', emotion: 'sleepy' }, findable: true, reaction: 'shake' },
   { id: 'butterfly', sprite: 'forest/butterfly', rect: { x: 58, y: 50, w: 6.5, h: 8 }, z: 4, voice: v('butterfly'), sfx: 'sparkle', tags: { kind: 'insect', color: 'blue', size: 'small', action: 'fly', place: 'in_sky', emotion: 'happy' }, findable: true, reaction: 'spin' },
   { id: 'bee', sprite: 'forest/bee', rect: { x: 69, y: 57, w: 6.5, h: 8 }, z: 4, voice: v('bee', { ask: 'bee_ask', sound: 'bee_sound' }), sfx: 'buzz', tags: { kind: 'insect', color: 'yellow', size: 'small', action: 'fly', place: 'in_sky', emotion: 'happy', says: 'ж' }, findable: true, reaction: 'spin' },
   { id: 'duck', sprite: 'forest/duck', rect: { x: 74, y: 83, w: 7, h: 10 }, z: 4, voice: v('duck', { ask: 'duck_ask', sound: 'duck_sound' }), sfx: 'quack', tags: { kind: 'bird', color: 'yellow', size: 'small', action: 'swim', place: 'in_water', emotion: 'happy', says: 'кря' }, findable: true, reaction: 'hop' },
@@ -50,19 +50,29 @@ export const forest: SceneDef = {
   title: 'Лес',
   background: 'forest/bg',
   objects,
+  // Порядок = рост сложности (п. 2.8 требований): кто это → на слух → действие → место → признак → эмоции.
+  // 10 уровней ≈ 10–15 минут для малыша (п. 2.9: контента больше чем на 10 минут).
   levels: [
-    // 1. Кто это? По одному, с силуэтами — для самых маленьких.
-    { id: 'forest_1', type: 'who', task: 'squirrel_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['squirrel', 'hedgehog', 'bunny'] } },
-    // 2. Кто так говорит? На слух, без силуэтов.
-    { id: 'forest_2', type: 'sound', task: 'task_sound_intro', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['owl', 'duck', 'frog', 'bee'] } },
-    // 3. Глаголы: кто спит?
-    { id: 'forest_3', type: 'action', task: 'task_sleep', query: { action: 'sleep' } },
-    // 4. Признак: всё красное.
-    { id: 'forest_4', type: 'attribute', task: 'task_red', query: { color: 'red' } },
-    // 5. Предлоги: кто на дереве?
-    { id: 'forest_5', type: 'place', task: 'task_on_tree', query: { kind: ['animal', 'bird'], place: 'on_tree' } },
-    // 6. Эмоции: кому грустно — пожалей.
-    { id: 'forest_6', type: 'emotion', task: 'task_sad', query: { emotion: 'sad' } },
+    // Кто это? По одному, с силуэтами — для самых маленьких.
+    { id: 'forest_who1', type: 'who', task: 'squirrel_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['squirrel', 'hedgehog', 'bunny'] } },
+    // Кто так говорит? На слух, без силуэтов.
+    { id: 'forest_sound', type: 'sound', task: 'task_sound_intro', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['owl', 'duck', 'frog', 'bee'] } },
+    // Кто это? Второй круг — новые слова.
+    { id: 'forest_who2', type: 'who', task: 'fox_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['fox', 'owl', 'bear', 'frog'] } },
+    // Глаголы: кто спит?
+    { id: 'forest_sleep', type: 'action', task: 'task_sleep', query: { action: 'sleep' } },
+    // Место: кто живёт в пруду?
+    { id: 'forest_pond', type: 'place', task: 'task_pond', query: { place: 'in_water' } },
+    // Признак: всё красное.
+    { id: 'forest_red', type: 'attribute', task: 'task_red', query: { color: 'red' } },
+    // Признак: всё жёлтое.
+    { id: 'forest_yellow', type: 'attribute', task: 'task_yellow', query: { color: 'yellow' } },
+    // Категория: насекомые.
+    { id: 'forest_bugs', type: 'attribute', task: 'task_bugs', query: { kind: 'insect' } },
+    // Предлоги: кто на дереве?
+    { id: 'forest_tree', type: 'place', task: 'task_on_tree', query: { kind: ['animal', 'bird'], place: 'on_tree' } },
+    // Эмоции: кому грустно — пожалей.
+    { id: 'forest_sad', type: 'emotion', task: 'task_sad', query: { emotion: 'sad' } },
   ],
   parentQuestions: [
     'Что делает белочка? А что она ест?',

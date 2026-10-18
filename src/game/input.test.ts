@@ -1,0 +1,50 @@
+import { describe, expect, it } from 'vitest';
+import { forest } from '../data/scenes/forest';
+import { RageDetector, hintStage, hitRect, pickObject } from './input';
+
+describe('RageDetector', () => {
+  it('срабатывает на 5-м касании в пустоту за 2 секунды', () => {
+    const r = new RageDetector();
+    expect([0, 300, 600, 900].map((t) => r.tap(t))).toEqual([false, false, false, false]);
+    expect(r.tap(1200)).toBe(true);
+  });
+  it('не срабатывает на редких касаниях', () => {
+    const r = new RageDetector();
+    expect([0, 700, 1400, 2100, 2800, 3500].some((t) => r.tap(t))).toBe(false);
+  });
+});
+
+describe('hintStage', () => {
+  it('0 → 12 с качание → 25 с пульсация', () => {
+    expect(hintStage(5000)).toBe(0);
+    expect(hintStage(12000)).toBe(1);
+    expect(hintStage(25000)).toBe(2);
+  });
+});
+
+describe('hitRect', () => {
+  it('расширяет на 28%', () => {
+    const r = hitRect({ x: 50, y: 50, w: 10, h: 10 }, 1);
+    expect(r.w).toBeCloseTo(12.8);
+  });
+  it('на маленьком экране держит минимум 52 px', () => {
+    const scale = 0.3; // телефон: холст 576×324 px
+    const r = hitRect({ x: 50, y: 50, w: 1, h: 1 }, scale);
+    expect(r.w * 1920 * scale / 100).toBeCloseTo(52);
+  });
+});
+
+describe('pickObject', () => {
+  it('в центре белочки находит белочку, а не берёзу', () => {
+    const o = pickObject(forest.objects, 31, 29, 0.5, new Set());
+    expect(o?.id).toBe('squirrel');
+  });
+  it('цель задания приоритетнее соседей', () => {
+    // божья коровка сидит на пеньке — касание на краю пенька, но рядом с коровкой
+    const o = pickObject(forest.objects, 38, 68, 0.5, new Set(['ladybug']));
+    expect(o?.id).toBe('ladybug');
+  });
+  it('пустое небо — ничего', () => {
+    expect(pickObject(forest.objects, 45, 15, 0.5, new Set())).toBeNull();
+  });
+});

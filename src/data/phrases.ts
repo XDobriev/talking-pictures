@@ -31,6 +31,9 @@ export const PHRASES = {
   task_sleep: { text: 'Тише-тише… Найди всех, кто спит.', stressed: 'Т+ише-т+ише… Найд+и всех, кто спит.', mood: 'whisper' },
   task_red: { text: 'Найди всё красное!', stressed: 'Найд+и всё кр+асное!', mood: 'curious' },
   task_on_tree: { text: 'Кто сидит на дереве? Найди!', stressed: 'Кто сид+ит на д+ереве? Найд+и!', mood: 'curious' },
+  task_pond: { text: 'Кто живёт в пруду? Найди всех!', stressed: 'Кто живёт в пруд+у? Найд+и всех!', mood: 'curious' },
+  task_yellow: { text: 'Найди всё жёлтое, как солнышко!', stressed: 'Найд+и всё жёлтое, как с+олнышко!', mood: 'curious' },
+  task_bugs: { text: 'Найди жучков и букашек!', stressed: 'Найд+и жучк+ов и бук+ашек!', mood: 'curious' },
   task_sad: { text: 'Кому-то грустно. Найди и пожалей!', stressed: 'Ком+у-то гр+устно. Найд+и и пожал+ей!', mood: 'gentle' },
 
   // --- белочка ---
