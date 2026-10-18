@@ -1,21 +1,23 @@
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
 import { useEffect } from 'react';
-import { Sprite } from '../art';
+import { ObjectArt } from '../art';
 import { playSfx } from '../audio';
-import type { SceneObject } from '../game/types';
+import type { SceneDef, SceneObject } from '../game/types';
 import { RoundButton } from './Button';
 import { ArrowIcon, HomeIcon, ReplayIcon, StarIcon } from './icons';
 
 // Праздник без оценок: всегда 3 звезды из 3, наклейка-награда, большая стрелка «дальше».
 
 export function WinOverlay({
+  scene,
   sticker,
   hasNext,
   onNext,
   onHome,
   onReplay,
 }: {
+  scene: SceneDef;
   sticker: SceneObject;
   hasNext: boolean;
   onNext(): void;
@@ -71,7 +73,7 @@ export function WinOverlay({
           transition={{ delay: 1.6, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           data-testid="sticker"
         >
-          <Sprite id={sticker.sprite} mood={sticker.tags.emotion === 'sad' ? 'happy' : undefined} />
+          <ObjectArt scene={scene} obj={sticker} mood={sticker.tags.emotion === 'sad' ? 'happy' : undefined} />
           <div className="absolute -right-4 -top-4 h-16 w-16 rotate-12 rounded-xl bg-ochre/70" />
         </motion.div>
 

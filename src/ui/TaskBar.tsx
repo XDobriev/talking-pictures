@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Sprite } from '../art';
-import type { SceneObject } from '../game/types';
+import { ObjectArt } from '../art';
+import type { SceneDef, SceneObject } from '../game/types';
 
 // Панель заданий: бумажная полоска внизу по центру со слотами-силуэтами.
 // Геометрия задана в пикселях холста, чтобы полёт находки в слот считался без замеров DOM.
@@ -15,6 +15,7 @@ export function slotCenter(i: number, n: number) {
 }
 
 interface Props {
+  scene: SceneDef;
   targets: SceneObject[];
   found: Set<string>;
   /** Индекс текущей цели в пошаговом режиме (иначе -1). */
@@ -25,7 +26,7 @@ interface Props {
   onSlot(target: SceneObject): void;
 }
 
-export function TaskBar({ targets, found, current, hideSilhouettes, wiggleKey, onSlot }: Props) {
+export function TaskBar({ scene, targets, found, current, hideSilhouettes, wiggleKey, onSlot }: Props) {
   const n = targets.length;
   const width = n * SLOT + (n - 1) * SLOT_GAP + 56;
   return (
@@ -74,11 +75,11 @@ export function TaskBar({ targets, found, current, hideSilhouettes, wiggleKey, o
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.55, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Sprite id={t.sprite} mood={t.tags.emotion === 'sad' ? 'happy' : undefined} />
+                <ObjectArt scene={scene} obj={t} mood={t.tags.emotion === 'sad' ? 'happy' : undefined} />
               </motion.div>
             ) : !hideSilhouettes ? (
-              <div key={wiggleKey} className={`absolute inset-[14px] ${wiggleKey ? 'jelly' : ''}`} style={{ filter: 'brightness(0)', opacity: 0.32 }}>
-                <Sprite id={t.sprite} />
+              <div key={wiggleKey} className={`absolute inset-[14px] ${wiggleKey ? 'jelly' : ''}`}>
+                <ObjectArt scene={scene} obj={t} silhouette />
               </div>
             ) : (
               <div key={wiggleKey} className={`absolute inset-0 flex items-center justify-center font-display text-[84px] text-ink/35 ${wiggleKey ? 'jelly' : ''}`}>

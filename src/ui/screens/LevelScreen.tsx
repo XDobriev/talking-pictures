@@ -17,7 +17,8 @@ import { TaskBar, slotCenter } from '../TaskBar';
 import { WinOverlay } from '../WinOverlay';
 
 const FIREFLY_COOLDOWN = 15000;
-const FIREFLY_POS = { x: 150, y: 930 };
+// Правый нижний угол: в нарисованных сценах он свободен (нижняя полоса — пустая трава).
+const FIREFLY_POS = { x: 1770, y: 930 };
 const ECHO_PAUSE = 2200;
 
 const PARTICLE_FOR: Partial<Record<SfxName, ParticleKind>> = {
@@ -264,7 +265,6 @@ export function LevelScreen({
   }, [hint, active, firefly]);
 
   const prefer = useMemo(() => new Set(active.map((t) => t.id)), [active]);
-  const hidden = useMemo(() => new Set(found), [found]);
   const cooldown = Math.max(0, Math.min(1, (fireflyReadyAt - now) / FIREFLY_COOLDOWN));
   const handTarget = showHand && phase === 'playing' && found.size === 0 ? targets[0] : null;
 
@@ -272,7 +272,7 @@ export function LevelScreen({
     <div className="absolute inset-0" data-testid="level" data-level={level.id}>
       <SceneView
         scene={scene}
-        hidden={hidden}
+        found={found}
         pulse={pulse}
         prefer={prefer}
         moods={moods}
@@ -284,6 +284,7 @@ export function LevelScreen({
       <Particles ref={particles} />
 
       <TaskBar
+        scene={scene}
         targets={targets}
         found={found}
         current={seq ? current : -1}
@@ -295,6 +296,7 @@ export function LevelScreen({
       {flights.map((f) => (
         <FoundFlight
           key={f.key}
+          scene={scene}
           obj={f.obj}
           to={slotCenter(f.slot, targets.length)}
           mood={level.type === 'emotion' ? 'happy' : undefined}
@@ -347,6 +349,7 @@ export function LevelScreen({
 
       {phase === 'won' && (
         <WinOverlay
+          scene={scene}
           sticker={targets[0]}
           hasNext={levelIndex < scene.levels.length - 1}
           onNext={onNext}

@@ -36,15 +36,15 @@ describe('hitRect', () => {
 
 describe('pickObject', () => {
   it('в центре белочки находит белочку, а не берёзу', () => {
-    const o = pickObject(forest.objects, 31, 29, 0.5, new Set());
+    const o = pickObject(forest.objects, 26.5, 21.5, 0.5, new Set());
     expect(o?.id).toBe('squirrel');
   });
   it('цель задания приоритетнее соседей', () => {
-    // божья коровка сидит на пеньке — касание на краю пенька, но рядом с коровкой
-    const o = pickObject(forest.objects, 38, 68, 0.5, new Set(['ladybug']));
+    // божья коровка сидит на пеньке — касание по пеньку рядом с коровкой
+    const o = pickObject(forest.objects, 50, 52, 0.5, new Set(['ladybug']));
     expect(o?.id).toBe('ladybug');
   });
   it('пустое небо — ничего', () => {
-    expect(pickObject(forest.objects, 45, 15, 0.5, new Set())).toBeNull();
+    expect(pickObject(forest.objects, 45, 4, 0.5, new Set())).toBeNull();
   });
 });

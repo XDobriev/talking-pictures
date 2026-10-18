@@ -39,7 +39,7 @@ describe('сцена «Лес»', () => {
     const overlaps = (o: (typeof forest.objects)[number], x0: number, x1: number, y0: number, y1: number) =>
       o.rect.x - o.rect.w / 2 < x1 && o.rect.x + o.rect.w / 2 > x0 && o.rect.y - o.rect.h / 2 < y1 && o.rect.y + o.rect.h / 2 > y0;
     for (const o of forest.objects.filter((o) => o.findable)) {
-      expect(overlaps(o, 0, 12.5, 78, 100), `${o.id} под светлячком`).toBe(false);
+      expect(overlaps(o, 87.5, 100, 78, 100), `${o.id} под светлячком`).toBe(false);
       expect(overlaps(o, 0, 8.5, 0, 14), `${o.id} под «домой»`).toBe(false);
     }
   });

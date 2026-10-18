@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useRef, useState, type PointerEvent } from 'react';
-import { Sprite } from '../../art';
+import { ObjectArt } from '../../art';
 import { playSfx, say } from '../../audio';
 import { SCENES } from '../../data/scenes';
 import { useStore } from '../../game/store';
@@ -25,7 +25,7 @@ export function AlbumScreen({ onHome }: { onHome(): void }) {
   const [drag, setDrag] = useState<{ id: string; x: number; y: number } | null>(null);
   const moved = useRef(false);
 
-  const all = SCENES.flatMap((s) => s.objects);
+  const all = SCENES.flatMap((s) => s.objects.map((o) => ({ ...o, scene: s })));
   const stickers = save.stickers.map((id) => all.find((o) => o.id === id)).filter((o) => !!o);
 
   const pos = (id: string, i: number) => (drag?.id === id ? drag : save.album[id] ?? defaultSpot(i));
@@ -115,7 +115,7 @@ export function AlbumScreen({ onHome }: { onHome(): void }) {
             animate={{ scale: active ? 1.12 : 1 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Sprite id={o.sprite} mood={o.tags.emotion === 'sad' ? 'happy' : undefined} />
+            <ObjectArt scene={o.scene} obj={o} mood={o.tags.emotion === 'sad' ? 'happy' : undefined} />
           </motion.div>
         );
       })}

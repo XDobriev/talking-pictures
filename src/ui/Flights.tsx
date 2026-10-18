@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Sprite } from '../art';
-import type { SceneObject } from '../game/types';
+import { ObjectArt } from '../art';
+import type { SceneDef, SceneObject } from '../game/types';
 import { FireflyArt, PawIcon } from './icons';
 import { SLOT } from './TaskBar';
 
@@ -12,7 +12,7 @@ const pct = (o: SceneObject) => ({
 });
 
 /** Находка увеличивается, «чпокает» и летит дугой в свой слот. */
-export function FoundFlight({ obj, to, mood }: { obj: SceneObject; to: { x: number; y: number }; mood?: 'happy' }) {
+export function FoundFlight({ scene, obj, to, mood }: { scene: SceneDef; obj: SceneObject; to: { x: number; y: number }; mood?: 'happy' }) {
   const p = pct(obj);
   const size = Math.max(p.w, p.h);
   const endScale = (SLOT - 20) / size;
@@ -30,8 +30,8 @@ export function FoundFlight({ obj, to, mood }: { obj: SceneObject; to: { x: numb
       }}
       transition={{ duration: 1.1, times: [0, 0.25, 0.6, 1], ease: 'easeInOut' }}
     >
-      <div className="h-full w-full" style={{ filter: 'drop-shadow(0 0 30px rgba(255,243,176,0.9))' }}>
-        <Sprite id={obj.sprite} mood={mood} />
+      <div className="h-full w-full" style={{ filter: 'drop-shadow(0 0 30px rgba(255,243,176,0.9)) drop-shadow(0 0 0 #fffaf0)' }}>
+        <ObjectArt scene={scene} obj={obj} mood={mood} />
       </div>
     </motion.div>
   );

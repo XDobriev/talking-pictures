@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { SceneBackground, Sprite } from '../../art';
+import { ObjectArt, SceneBackground } from '../../art';
 import { resolveTargets } from '../../game/query';
 import { useStore } from '../../game/store';
 import type { SceneDef } from '../../game/types';
@@ -75,8 +75,8 @@ export function MenuScreen({ scene, onLevel, onParent, onAlbum }: { scene: Scene
             animate={isNext ? { scale: [1, 1.07, 1], rotate: 0 } : { scale: 1, rotate: 0 }}
             transition={isNext ? { scale: { repeat: Infinity, duration: 1.6 }, delay: i * 0.05 } : { delay: i * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="absolute inset-[20%]" style={done || isNext ? undefined : { filter: 'brightness(0)', opacity: 0.3 }}>
-              {hero && <Sprite id={hero.sprite} mood={hero.tags.emotion === 'sad' && done ? 'happy' : undefined} />}
+            <span className="absolute inset-[16%]">
+              {hero && <ObjectArt scene={scene} obj={hero} silhouette={!done && !isNext} mood={hero.tags.emotion === 'sad' && done ? 'happy' : undefined} />}
             </span>
             {done && (
               <span className="absolute -bottom-3 -right-3 h-[70px] w-[70px]">

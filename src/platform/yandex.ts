@@ -53,6 +53,9 @@ export class YandexPlatform implements Platform {
     if (!this.ysdk) return;
     this.ysdk.on('game_api_pause', () => this.pause.emit());
     this.ysdk.on('game_api_resume', () => this.resume.emit());
+    this.pause.on(() => this.setPaused(true));
+    this.resume.on(() => this.setPaused(false));
+    this.ad.on((showing) => this.setPaused(showing));
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this.pause.emit();
@@ -69,15 +72,29 @@ export class YandexPlatform implements Platform {
   gameReady() {
     this.ysdk?.features.LoadingAPI?.ready();
   }
+  /** Хочет ли игра, чтобы геймплей шёл (уровень открыт и не завершён). */
+  private gameplayWanted = false;
+  private paused = false;
+
   gameplayStart() {
-    if (this.gameplayOn) return;
-    this.gameplayOn = true;
-    this.ysdk?.features.GameplayAPI?.start();
+    this.gameplayWanted = true;
+    this.applyGameplay();
   }
   gameplayStop() {
-    if (!this.gameplayOn) return;
-    this.gameplayOn = false;
-    this.ysdk?.features.GameplayAPI?.stop();
+    this.gameplayWanted = false;
+    this.applyGameplay();
+  }
+  /** Разметка геймплея (п. 1.19.3): stop на паузе/рекламе/уходе со вкладки, start при возврате. */
+  private applyGameplay() {
+    const on = this.gameplayWanted && !this.paused;
+    if (on === this.gameplayOn) return;
+    this.gameplayOn = on;
+    if (on) this.ysdk?.features.GameplayAPI?.start();
+    else this.ysdk?.features.GameplayAPI?.stop();
+  }
+  private setPaused(v: boolean) {
+    this.paused = v;
+    this.applyGameplay();
   }
 
   /** Общая обёртка показа: гарантирует, что промис разрешится, а звук и ввод вернутся. */

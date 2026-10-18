@@ -225,6 +225,37 @@
   animation: hint-pulse 2s ease-in-out infinite;
 }
 
+/* Подсказка в нарисованной сцене: мягкое светящееся кольцо вокруг героя. */
+@keyframes hint-ring {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+.hint-ring {
+  border: 8px solid rgba(255, 243, 176, 0.95);
+  box-shadow: 0 0 40px 10px rgba(255, 243, 176, 0.6), inset 0 0 30px rgba(255, 243, 176, 0.5);
+  animation: hint-ring 1.6s ease-in-out infinite;
+}
+
+@keyframes found-badge {
+  0% {
+    transform: scale(0) rotate(-40deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+.found-badge {
+  animation: found-badge 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  filter: drop-shadow(0 3px 4px rgba(30, 25, 15, 0.35));
+}
+
 /* Силуэт в панели «качается», напоминая, кого ищем. */
 @keyframes jelly {
   0%,
