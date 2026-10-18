@@ -1,0 +1,74 @@
+import type { SceneDef, SceneObject } from '../../game/types';
+
+// Сцена «Лес». Координаты — центр объекта в % холста 16:9.
+// Запретная зона под панелью заданий: x 27–73, y > 84 — туда цели не ставим.
+
+const v = (id: string, extra: Partial<SceneObject['voice']> = {}) => ({
+  name: `${id}_name`,
+  fact: `${id}_fact`,
+  echo: `${id}_echo`,
+  ...extra,
+});
+
+const objects: SceneObject[] = [
+  // ---------- декорации (не цели, но живые) ----------
+  { id: 'sun', sprite: 'forest/sun', rect: { x: 89, y: 12, w: 9, h: 15 }, z: 0, voice: { name: 'sun_name' }, sfx: 'sparkle', tags: { kind: 'thing' }, findable: false, reaction: 'spin' },
+  { id: 'cloud_a', sprite: 'forest/cloud', rect: { x: 30, y: 10, w: 15, h: 11 }, z: 0, voice: { name: 'cloud_name' }, sfx: 'drip', tags: { kind: 'thing' }, findable: false, reaction: 'shake' },
+  { id: 'cloud_b', sprite: 'forest/cloud', rect: { x: 60, y: 7, w: 11, h: 8 }, z: 0, flip: true, voice: { name: 'cloud_name' }, sfx: 'drip', tags: { kind: 'thing' }, findable: false, reaction: 'shake' },
+  { id: 'spruce', sprite: 'forest/spruce', rect: { x: 9, y: 44, w: 18, h: 80 }, z: 1, voice: { name: 'spruce_name' }, sfx: 'rustle', tags: { kind: 'plant' }, findable: false, reaction: 'wiggle' },
+  { id: 'birch', sprite: 'forest/birch', rect: { x: 28, y: 37, w: 12, h: 66 }, z: 1, voice: { name: 'birch_name' }, sfx: 'rustle', tags: { kind: 'plant' }, findable: false, reaction: 'wiggle' },
+  { id: 'oak', sprite: 'forest/oak', rect: { x: 80, y: 38, w: 28, h: 70 }, z: 1, voice: { name: 'oak_name' }, sfx: 'rustle', tags: { kind: 'plant' }, findable: false, reaction: 'wiggle' },
+  { id: 'pond', sprite: 'forest/pond', rect: { x: 80, y: 84, w: 32, h: 22 }, z: 1, voice: { name: 'pond_name' }, sfx: 'bubble', tags: { kind: 'thing' }, findable: false, reaction: 'shake' },
+  { id: 'bush', sprite: 'forest/bush', rect: { x: 17, y: 79, w: 18, h: 18 }, z: 2, voice: { name: 'bush_name' }, sfx: 'rustle', tags: { kind: 'plant' }, findable: false, reaction: 'wiggle' },
+  { id: 'stump', sprite: 'forest/stump', rect: { x: 37, y: 75, w: 12, h: 13 }, z: 2, voice: { name: 'stump_name' }, sfx: 'pop', tags: { kind: 'thing' }, findable: false, reaction: 'hop' },
+  { id: 'flowers', sprite: 'forest/flowers', rect: { x: 64, y: 66, w: 11, h: 9 }, z: 2, voice: { name: 'flower_name' }, sfx: 'sparkle', tags: { kind: 'plant' }, findable: false, reaction: 'wiggle' },
+
+  // ---------- цели ----------
+  { id: 'squirrel', sprite: 'forest/squirrel', rect: { x: 31, y: 29, w: 7, h: 11 }, z: 3, voice: v('squirrel', { ask: 'squirrel_ask', sound: 'squirrel_sound' }), sfx: 'squeak', tags: { kind: 'animal', color: 'orange', size: 'small', action: 'eat', place: 'on_tree', emotion: 'happy', says: 'цок' }, findable: true, reaction: 'hop' },
+  { id: 'owl', sprite: 'forest/owl', rect: { x: 79, y: 31, w: 7, h: 12 }, z: 3, voice: v('owl', { ask: 'owl_ask', sound: 'owl_sound' }), sfx: 'hoot', tags: { kind: 'bird', color: 'brown', size: 'medium', action: 'sleep', place: 'on_tree', emotion: 'sleepy', says: 'ух' }, findable: true, reaction: 'wiggle' },
+  { id: 'tit', sprite: 'forest/tit', rect: { x: 69, y: 21, w: 6.5, h: 9 }, z: 3, voice: v('tit', { ask: 'tit_ask', sound: 'tit_sound' }), sfx: 'tweet', tags: { kind: 'bird', color: 'yellow', size: 'small', action: 'sing', place: 'on_tree', emotion: 'happy', says: 'тинь' }, findable: true, reaction: 'hop' },
+  { id: 'rowan', sprite: 'forest/rowan', rect: { x: 45, y: 40, w: 9, h: 20 }, z: 2, voice: { name: 'rowan_name', fact: 'rowan_fact', echo: 'rowan_echo' }, sfx: 'rustle', tags: { kind: 'plant', color: 'red', size: 'medium', action: 'grow' }, findable: true, reaction: 'wiggle' },
+  { id: 'hedgehog', sprite: 'forest/hedgehog', rect: { x: 9, y: 70, w: 8, h: 10 }, z: 3, voice: v('hedgehog', { ask: 'hedgehog_ask', sound: 'hedgehog_sound' }), sfx: 'grunt', tags: { kind: 'animal', color: 'grey', size: 'small', action: 'sleep', place: 'under_tree', emotion: 'sleepy', says: 'фыр' }, findable: true, reaction: 'shake' },
+  { id: 'amanita', sprite: 'forest/amanita', rect: { x: 20, y: 62, w: 6.5, h: 10 }, z: 3, voice: { name: 'amanita_name', fact: 'amanita_fact', echo: 'amanita_echo' }, sfx: 'pop', tags: { kind: 'mushroom', color: 'red', size: 'big', action: 'grow', place: 'under_tree' }, findable: true, reaction: 'hop' },
+  { id: 'boletus', sprite: 'forest/boletus', rect: { x: 27, y: 66, w: 6.5, h: 9 }, z: 3, voice: { name: 'boletus_name', fact: 'boletus_fact', echo: 'boletus_echo' }, sfx: 'pop', tags: { kind: 'mushroom', color: 'brown', size: 'small', action: 'grow', place: 'under_tree' }, findable: true, reaction: 'hop' },
+  { id: 'ladybug', sprite: 'forest/ladybug', rect: { x: 37, y: 65, w: 6.5, h: 8 }, z: 4, voice: { name: 'ladybug_name', fact: 'ladybug_fact', echo: 'ladybug_echo' }, sfx: 'buzz', tags: { kind: 'insect', color: 'red', size: 'small', action: 'crawl', place: 'on_stump' }, findable: true, reaction: 'spin' },
+  { id: 'strawberry', sprite: 'forest/strawberry', rect: { x: 42, y: 57, w: 6.5, h: 8 }, z: 3, voice: { name: 'strawberry_name', fact: 'strawberry_fact', echo: 'strawberry_echo' }, sfx: 'pop', tags: { kind: 'plant', color: 'red', size: 'small', action: 'grow', place: 'in_grass' }, findable: true, reaction: 'hop' },
+  { id: 'bear', sprite: 'forest/bear', rect: { x: 50, y: 66, w: 10, h: 17 }, z: 3, voice: v('bear', { ask: 'bear_ask', helped: 'bear_helped' }), sfx: 'grunt', tags: { kind: 'animal', color: 'brown', size: 'big', action: 'sit', place: 'on_path', emotion: 'sad' }, findable: true, reaction: 'wiggle' },
+  { id: 'bunny', sprite: 'forest/bunny', rect: { x: 60, y: 76, w: 7, h: 12 }, z: 3, voice: v('bunny', { ask: 'bunny_ask' }), sfx: 'pop', tags: { kind: 'animal', color: 'white', size: 'small', action: 'jump', place: 'in_grass', emotion: 'happy' }, findable: true, reaction: 'hop' },
+  { id: 'snail', sprite: 'forest/snail', rect: { x: 23, y: 89, w: 6.5, h: 8 }, z: 4, voice: v('snail'), sfx: 'bubble', tags: { kind: 'animal', color: 'yellow', size: 'small', action: 'crawl', place: 'on_path', emotion: 'calm' }, findable: true, reaction: 'wiggle' },
+  { id: 'fox', sprite: 'forest/fox', rect: { x: 9, y: 89, w: 11, h: 10 }, z: 4, voice: v('fox', { ask: 'fox_ask' }), sfx: 'grunt', tags: { kind: 'animal', color: 'orange', size: 'medium', action: 'sleep', place: 'behind_bush', emotion: 'sleepy' }, findable: true, reaction: 'shake' },
+  { id: 'butterfly', sprite: 'forest/butterfly', rect: { x: 58, y: 50, w: 6.5, h: 8 }, z: 4, voice: v('butterfly'), sfx: 'sparkle', tags: { kind: 'insect', color: 'blue', size: 'small', action: 'fly', place: 'in_sky', emotion: 'happy' }, findable: true, reaction: 'spin' },
+  { id: 'bee', sprite: 'forest/bee', rect: { x: 69, y: 57, w: 6.5, h: 8 }, z: 4, voice: v('bee', { ask: 'bee_ask', sound: 'bee_sound' }), sfx: 'buzz', tags: { kind: 'insect', color: 'yellow', size: 'small', action: 'fly', place: 'in_sky', emotion: 'happy', says: 'ж' }, findable: true, reaction: 'spin' },
+  { id: 'duck', sprite: 'forest/duck', rect: { x: 74, y: 83, w: 7, h: 10 }, z: 4, voice: v('duck', { ask: 'duck_ask', sound: 'duck_sound' }), sfx: 'quack', tags: { kind: 'bird', color: 'yellow', size: 'small', action: 'swim', place: 'in_water', emotion: 'happy', says: 'кря' }, findable: true, reaction: 'hop' },
+  { id: 'frog', sprite: 'forest/frog', rect: { x: 88, y: 87, w: 7, h: 9 }, z: 4, voice: v('frog', { ask: 'frog_ask', sound: 'frog_sound' }), sfx: 'croak', tags: { kind: 'animal', color: 'green', size: 'small', action: 'sit', place: 'in_water', emotion: 'happy', says: 'ква' }, findable: true, reaction: 'hop' },
+  { id: 'fish', sprite: 'forest/fish', rect: { x: 83, y: 75, w: 6.5, h: 9 }, z: 4, voice: v('fish'), sfx: 'bubble', tags: { kind: 'animal', color: 'orange', size: 'small', action: 'jump', place: 'in_water', emotion: 'happy' }, findable: true, reaction: 'hop' },
+  { id: 'mouse', sprite: 'forest/mouse', rect: { x: 93, y: 63, w: 6.5, h: 9 }, z: 4, voice: v('mouse', { ask: 'mouse_ask', helped: 'mouse_helped' }), sfx: 'squeak', tags: { kind: 'animal', color: 'grey', size: 'small', action: 'sit', place: 'under_tree', emotion: 'sad' }, findable: true, reaction: 'shake' },
+];
+
+export const forest: SceneDef = {
+  id: 'forest',
+  title: 'Лес',
+  background: 'forest/bg',
+  objects,
+  levels: [
+    // 1. Кто это? По одному, с силуэтами — для самых маленьких.
+    { id: 'forest_1', type: 'who', task: 'squirrel_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['squirrel', 'hedgehog', 'bunny'] } },
+    // 2. Кто так говорит? На слух, без силуэтов.
+    { id: 'forest_2', type: 'sound', task: 'task_sound_intro', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['owl', 'duck', 'frog', 'bee'] } },
+    // 3. Глаголы: кто спит?
+    { id: 'forest_3', type: 'action', task: 'task_sleep', query: { action: 'sleep' } },
+    // 4. Признак: всё красное.
+    { id: 'forest_4', type: 'attribute', task: 'task_red', query: { color: 'red' } },
+    // 5. Предлоги: кто на дереве?
+    { id: 'forest_5', type: 'place', task: 'task_on_tree', query: { kind: ['animal', 'bird'], place: 'on_tree' } },
+    // 6. Эмоции: кому грустно — пожалей.
+    { id: 'forest_6', type: 'emotion', task: 'task_sad', query: { emotion: 'sad' } },
+  ],
+  parentQuestions: [
+    'Что делает белочка? А что она ест?',
+    'Кто в лесу спит днём? Почему сова спит днём?',
+    'Почему медвежонку грустно? Как его можно утешить?',
+    'Кто живёт в пруду? Как говорит уточка, а как лягушка?',
+    'Найди что-нибудь маленькое и что-нибудь большое.',
+  ],
+};

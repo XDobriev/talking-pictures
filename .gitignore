@@ -1,0 +1,9 @@
+node_modules
+dist
+release
+*.zip
+.env
+.env.*
+test-results
+screenshots/tmp
+.claude/settings.local.json
