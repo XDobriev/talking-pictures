@@ -1,6 +1,6 @@
 import { useRef, type CSSProperties, type PointerEvent } from 'react';
 import { SceneBackground, Sprite, cropStyle, isBaked } from '../art';
-import type { Mood } from '../art/forest';
+import type { Mood } from '../art';
 import { pickObject } from '../game/input';
 import type { SceneDef, SceneObject } from '../game/types';
 import { useStage } from './Stage';

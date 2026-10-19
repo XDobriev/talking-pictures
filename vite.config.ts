@@ -24,10 +24,36 @@ const sdkStub: Plugin = {
   },
 };
 
+/**
+ * Предзагрузка того, что нужно первому экрану: фон леса (LCP) и кириллические шрифты.
+ * Без неё браузер узнаёт о картинке только после загрузки и запуска всего скрипта:
+ * на бюджетном телефоне с 3G это +2,6 с до появления экрана.
+ */
+const preloadFirstScreen: Plugin = {
+  name: 'preload-first-screen',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(_html, ctx) {
+      const assets = Object.values(ctx.bundle ?? {}).filter((f) => f.type === 'asset');
+      const find = (re: RegExp) =>
+        assets.filter((a) => re.test(a.fileName) || (a.type === 'asset' && a.originalFileNames?.some((n) => re.test(n))));
+      const bg = find(/scenes\/forest\/bg\.webp$/);
+      const fonts = find(/(pangolin|nunito)-cyrillic-(?!ext).*\.woff2$/);
+      return [
+        ...bg.map((a) => ({ tag: 'link', attrs: { rel: 'preload', as: 'image', href: `./${a.fileName}`, fetchpriority: 'high' }, injectTo: 'head' as const })),
+        ...fonts.map((a) => ({ tag: 'link', attrs: { rel: 'preload', as: 'font', type: 'font/woff2', href: `./${a.fileName}`, crossorigin: '' }, injectTo: 'head' as const })),
+      ];
+    },
+  },
+};
+
 export default defineConfig({
   base: './',
-  plugins: [react(), tailwindcss(), sdkStub],
+  plugins: [react(), tailwindcss(), sdkStub, preloadFirstScreen],
   build: {
+    // Vite здесь почему-то не очищает dist (даже с emptyOutDir) — старые сборки копились в архиве для Яндекса.
+    // Поэтому dist удаляет `npm run clean` перед каждой сборкой.
     target: 'es2020',
     assetsInlineLimit: 4096,
     chunkSizeWarningLimit: 900,

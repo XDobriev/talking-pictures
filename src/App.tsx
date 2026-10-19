@@ -1,18 +1,26 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { muteFor, say, stopVoice, unlockAudio, unmuteFor } from './audio';
 import { SCENES } from './data/scenes';
 import { useStore } from './game/store';
 import { track } from './game/telemetry';
-import { DevInspector } from './ui/DevInspector';
 import { AdOverlay, RotateOverlay } from './ui/Overlays';
-import { ParentGate } from './ui/ParentGate';
-import { ParentMenu } from './ui/ParentMenu';
-import { AlbumScreen } from './ui/screens/AlbumScreen';
-import { LevelScreen } from './ui/screens/LevelScreen';
-import { MenuScreen } from './ui/screens/MenuScreen';
 import { StartScreen } from './ui/screens/StartScreen';
 import { Stage } from './ui/Stage';
+
+// Первому экрану нужен только StartScreen. Остальное — отдельными файлами: на бюджетном телефоне с 3G
+// так стартовый экран появляется раньше, а догрузка идёт, пока ребёнок смотрит на кнопку «Играть».
+const loadMenu = () => import('./ui/screens/MenuScreen');
+const loadLevel = () => import('./ui/screens/LevelScreen');
+const loadAlbum = () => import('./ui/screens/AlbumScreen');
+const loadGate = () => import('./ui/ParentGate');
+const loadParent = () => import('./ui/ParentMenu');
+const MenuScreen = lazy(() => loadMenu().then((m) => ({ default: m.MenuScreen })));
+const LevelScreen = lazy(() => loadLevel().then((m) => ({ default: m.LevelScreen })));
+const AlbumScreen = lazy(() => loadAlbum().then((m) => ({ default: m.AlbumScreen })));
+const ParentGate = lazy(() => loadGate().then((m) => ({ default: m.ParentGate })));
+const ParentMenu = lazy(() => loadParent().then((m) => ({ default: m.ParentMenu })));
+const DevInspector = lazy(() => import('./ui/DevInspector').then((m) => ({ default: m.DevInspector })));
 
 type Screen = { name: 'start' } | { name: 'menu' } | { name: 'album' } | { name: 'level'; index: number; run: number };
 
@@ -36,6 +44,9 @@ export function App() {
     // Игра готова: стартовый экран с кнопкой «Играть» уже на месте (Game Ready, п. 1.19.2).
     platform.gameReady();
     track('session_start', { platform: platform.name, lang: platform.lang() });
+    // Подгружаем остальные экраны заранее, сразу после первого кадра.
+    const t = setTimeout(() => void Promise.all([loadLevel(), loadMenu(), loadAlbum(), loadGate(), loadParent()]), 0);
+    return () => clearTimeout(t);
   }, [platform]);
 
   const go = (s: Screen) => {
@@ -75,6 +86,7 @@ export function App() {
           transition={{ duration: 0.35 }}
         >
           {screen.name === 'start' && <StartScreen onPlay={onPlay} />}
+          <Suspense fallback={null}>
           {screen.name === 'menu' && (
             <MenuScreen
               scene={scene}
@@ -94,13 +106,16 @@ export function App() {
               onNext={() => void startLevel(Math.min(screen.index + 1, scene.levels.length - 1), true)}
             />
           )}
+          </Suspense>
         </motion.div>
       </AnimatePresence>
 
-      {overlay === 'gate' && <ParentGate onCancel={() => setOverlay(null)} onPass={() => setOverlay('parent')} />}
-      {overlay === 'parent' && <ParentMenu onClose={() => setOverlay(null)} />}
+      <Suspense fallback={null}>
+        {overlay === 'gate' && <ParentGate onCancel={() => setOverlay(null)} onPass={() => setOverlay('parent')} />}
+        {overlay === 'parent' && <ParentMenu onClose={() => setOverlay(null)} />}
+        {import.meta.env.DEV && <DevInspector scene={screen.name === 'level' ? scene : null} />}
+      </Suspense>
       {ad && <AdOverlay mock={platform.name === 'mock'} />}
-      {import.meta.env.DEV && <DevInspector scene={screen.name === 'level' ? scene : null} />}
       <RotateOverlay />
     </Stage>
   );

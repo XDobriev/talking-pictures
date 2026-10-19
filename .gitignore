@@ -11,3 +11,4 @@ voice/raw
 sfx-src
 voice/logs
 voice-compare
+dist-*

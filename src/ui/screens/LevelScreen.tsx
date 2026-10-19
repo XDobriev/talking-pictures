@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Mood } from '../../art/forest';
+import type { Mood } from '../../art';
 import { playSfx, say, stopVoice } from '../../audio';
 import { PRAISE } from '../../data/phrases';
 import { RageDetector, hintStage } from '../../game/input';

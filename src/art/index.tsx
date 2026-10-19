@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
 import type { SceneDef, SceneObject } from '../game/types';
-import { FOREST_SPRITES, ForestBackground, type Mood } from './forest';
-
-// Реестр арта. Если в src/assets/scenes/<scene>/<name>.webp есть настоящая картинка —
-// она автоматически заменяет векторную заглушку с тем же ключом (например 'forest/squirrel').
+// Реестр арта: картинки из src/assets/scenes/<scene>/<name>.webp по ключу ('forest/bg').
+// Все сцены «запечённые» — герои кадрируются из фона. Векторные заглушки прототипа удалены
+// (были мёртвым кодом в стартовой загрузке); без картинки объект рисуется кружком.
 // Для эмоций: <name>_happy.webp — вариант «после утешения».
+
+export type Mood = 'sad' | 'happy' | undefined;
 
 const IMAGES = import.meta.glob('../assets/scenes/**/*.{webp,png}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const imageByKey = new Map<string, string>();
@@ -25,13 +26,7 @@ export function isBaked(scene: SceneDef) {
 export function Sprite({ id, mood, className }: { id: string; mood?: Mood; className?: string }) {
   const img = (mood === 'happy' && imageByKey.get(`${id}_happy`)) || imageByKey.get(id);
   if (img) return <img src={img} alt="" draggable={false} className={`h-full w-full object-contain ${className ?? ''}`} />;
-  const C = FOREST_SPRITES[id];
-  if (!C) return <div className="h-full w-full rounded-full bg-berry/40" />;
-  return (
-    <div className={`h-full w-full [&>svg]:h-full [&>svg]:w-full ${className ?? ''}`}>
-      <C mood={mood} />
-    </div>
-  );
+  return <div className={`h-full w-full rounded-full bg-berry/40 ${className ?? ''}`} />;
 }
 
 /** CSS-кадрирование фона сцены по прямоугольнику объекта. */
@@ -80,6 +75,5 @@ export function SceneBackground({ id }: { id: string }) {
   const img = imageByKey.get(id);
   // Растягиваем точно по холсту (а не cover), чтобы кадрирование героев совпадало пиксель в пиксель.
   if (img) return <div className="absolute inset-0" style={{ backgroundImage: `url(${img})`, backgroundSize: '100% 100%' }} />;
-  if (id === 'forest/bg') return <ForestBackground />;
   return <div className="absolute inset-0 bg-moss" />;
 }
