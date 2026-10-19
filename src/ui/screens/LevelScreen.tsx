@@ -8,7 +8,7 @@ import { resolveTargets } from '../../game/query';
 import { markLevelDone, useStore } from '../../game/store';
 import { track } from '../../game/telemetry';
 import type { SceneDef, SceneObject, SfxName } from '../../game/types';
-import { RoundButton } from '../Button';
+import { HoldButton } from '../Button';
 import { FireflyFlight, FoundFlight, GhostHand } from '../Flights';
 import { FireflyArt, HomeIcon } from '../icons';
 import { Particles, type ParticleKind, type ParticlesHandle } from '../Particles';
@@ -305,10 +305,11 @@ export function LevelScreen({
       {firefly && <FireflyFlight key={firefly.key} from={FIREFLY_POS} target={firefly.target} />}
       {handTarget && <GhostHand from={slotCenter(0, targets.length)} target={handTarget} />}
 
-      <div className="absolute z-30" style={{ left: 40, top: 36 }}>
-        <RoundButton label="домой" onPress={onHome} size={110} tone="paper">
+      {/* Выход посреди уровня — только удержанием: случайное касание не уносит малыша в меню. */}
+      <div className="absolute z-30" style={{ left: 18, top: 14 }}>
+        <HoldButton label="домой" onPress={onHome} size={130} tone="paper">
           <HomeIcon />
-        </RoundButton>
+        </HoldButton>
       </div>
 
       <div className="absolute z-30" style={{ left: FIREFLY_POS.x - 80, top: FIREFLY_POS.y - 80 }}>

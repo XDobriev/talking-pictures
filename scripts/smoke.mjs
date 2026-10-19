@@ -36,6 +36,18 @@ const tapId = async (page, id) => {
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 };
 
+/** Удержание пальца на кнопке (выход из уровня срабатывает только через ~1 с). */
+const holdId = async (page, id, ms = 1300) => {
+  const el = page.getByTestId(id).first();
+  await el.waitFor({ timeout: 8000 });
+  const box = await el.boundingBox();
+  if (!box) throw new Error(`нет кнопки ${id}`);
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+};
+
 const results = [];
 const step = async (name, fn) => {
   try {
@@ -112,8 +124,15 @@ try {
     await page.screenshot({ path: `${OUT}/07-bubbles.png` });
   });
 
-  await step('домой → меню уровней', async () => {
+  await step('короткое касание «домой» в уровне не выводит из уровня', async () => {
     await tapId(page, 'домой');
+    await page.waitForTimeout(1400);
+    if (await page.getByTestId('menu').count()) throw new Error('меню открылось от одного касания');
+    await page.locator('[data-level="forest_sound"]').waitFor({ timeout: 1000 });
+  });
+
+  await step('удержание «домой» → меню уровней', async () => {
+    await holdId(page, 'домой');
     await page.getByTestId('menu').waitFor({ timeout: 5000 });
     await page.waitForTimeout(900);
     await page.screenshot({ path: `${OUT}/08-menu.png` });
