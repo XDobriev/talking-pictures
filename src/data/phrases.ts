@@ -334,3 +334,11 @@ export const PRAISE: PhraseId[] = ['praise_1', 'praise_2', 'praise_3', 'praise_4
 export function phraseText(id: string): string {
   return (PHRASES as Record<string, Phrase>)[id]?.text ?? '';
 }
+
+/** Подпись героя для скринридера: «Это белочка.» → «белочка», «Это облако. Кап-кап!» → «облако». */
+export function nameLabel(nameId: string): string {
+  return phraseText(nameId)
+    .split(/[.!?…]/)[0]
+    .replace(/^Это\s+/, '')
+    .trim();
+}

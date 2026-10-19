@@ -73,8 +73,8 @@ export function SceneView({ scene, found, pulse, prefer, moods, reactions, disab
               )}
               {found.has(o.id) && (
                 <svg viewBox="0 0 40 40" className="found-badge absolute -right-[10%] -top-[10%] h-[34%] max-h-[56px] min-h-[34px] w-auto">
-                  <circle cx={20} cy={20} r={18} fill="#6f8f4e" stroke="#fffaf0" strokeWidth={3} />
-                  <path d="M11 21 L18 27 L29 14" stroke="#fffaf0" strokeWidth={4.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx={20} cy={20} r={18} fill="#6f8f4e" stroke="var(--color-cream)" strokeWidth={3} />
+                  <path d="M11 21 L18 27 L29 14" stroke="var(--color-cream)" strokeWidth={4.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
             </div>

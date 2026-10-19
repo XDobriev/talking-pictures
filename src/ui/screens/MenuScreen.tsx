@@ -35,7 +35,7 @@ function SceneHero({ scene, size }: { scene: SceneDef; size: number }) {
   const square = { x, y, w: (side / 1920) * 100, h: (side / 1080) * 100 };
   return (
     <span
-      className="block shrink-0 overflow-hidden rounded-full border-[6px] border-[#fffaf0] bg-[#fffaf0]"
+      className="block shrink-0 overflow-hidden rounded-full border-[6px] border-cream bg-cream"
       style={{ width: size, height: size, ...(isBaked(scene) ? cropStyle(scene.background, square) : {}) }}
     >
       {!isBaked(scene) && <ObjectArt scene={scene} obj={hero} />}
@@ -66,7 +66,7 @@ export function MenuScreen({
       <div className="absolute inset-0 brightness-[0.95] saturate-[0.9]">
         <SceneBackground id={scene.background} />
       </div>
-      <div className="absolute inset-0 bg-[#2f3b2a]/25" />
+      <div className="absolute inset-0 bg-night/25" />
 
       <svg className="pointer-events-none absolute inset-0" viewBox="0 0 1920 1080">
         <path d={d} fill="none" stroke="#f6efe1" strokeWidth={26} strokeLinecap="round" strokeDasharray="2 46" opacity={0.85} />
@@ -95,7 +95,7 @@ export function MenuScreen({
               width: size,
               height: size,
               fontSize: 28,
-              backgroundColor: done ? '#fffaf0' : 'var(--color-paper)',
+              backgroundColor: done ? 'var(--color-cream)' : 'var(--color-paper)',
               outline: isNext ? '10px solid var(--color-ochre)' : 'none',
               outlineOffset: 4,
             }}

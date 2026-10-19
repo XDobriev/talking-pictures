@@ -87,8 +87,8 @@ export const FireflyArt = ({ glow = true }: { glow?: boolean }) => (
     <circle cx={70} cy={14} r={3.5} fill="#f6d65c" />
     <circle cx={44} cy={39} r={3.2} fill="#fff" />
     <circle cx={56} cy={39} r={3.2} fill="#fff" />
-    <circle cx={44.8} cy={39.5} r={1.8} fill="#2f3b2a" />
-    <circle cx={56.8} cy={39.5} r={1.8} fill="#2f3b2a" />
+    <circle cx={44.8} cy={39.5} r={1.8} fill="var(--color-night)" />
+    <circle cx={56.8} cy={39.5} r={1.8} fill="var(--color-night)" />
     <path d="M45 46 Q50 50 55 46" stroke="#fff" strokeWidth={2} fill="none" strokeLinecap="round" />
   </svg>
 );

@@ -19,6 +19,9 @@
   --color-dusk-deep: #2f3b52;
   --color-berry: #c4415a;
   --color-glow: #fff3b0;
+  --color-cream: #fffaf0; /* светлая бумага: карточки, текст на цветных кнопках */
+  --color-night: #2f3b2a; /* тёмная зелень: поля вокруг холста, затемнения */
+  --color-scrim: #1f271c; /* подложка под окнами для взрослых и рекламой */
 
   --font-display: 'Pangolin', 'Comic Sans MS', cursive;
   --font-body: 'Nunito Variable', 'Trebuchet MS', sans-serif;
@@ -43,7 +46,7 @@
     overflow: hidden;
     touch-action: manipulation; /* без зума по двойному тапу */
     overscroll-behavior: none; /* без «потяни, чтобы обновить» */
-    background: #2f3b2a;
+    background: var(--color-night);
     font-family: var(--font-body);
     color: var(--color-ink);
   }
@@ -56,6 +59,12 @@
     background: none;
     padding: 0;
     touch-action: manipulation;
+  }
+
+  /* Фокус с клавиатуры (родители на компьютере). Цвет ink, а не охра: охра на бумаге — 1,9:1, мало для кольца. */
+  button:focus-visible {
+    outline: 6px solid var(--color-ink);
+    outline-offset: 5px;
   }
 }
 
@@ -85,10 +94,10 @@
 
 /* Поля вокруг холста 16:9 — тёмная зелёная бумага, чтобы рамка не выглядела «чёрной дырой». */
 .paper-dark {
-  background-color: #2f3b2a;
+  background-color: var(--color-night);
   background-image:
     radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1.3px),
-    radial-gradient(ellipse at 50% 40%, #3f5a32 0%, #2f3b2a 70%);
+    radial-gradient(ellipse at 50% 40%, var(--color-moss-deep) 0%, var(--color-night) 70%);
   background-size: 9px 9px, 100% 100%;
 }
 

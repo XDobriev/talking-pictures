@@ -4,11 +4,11 @@ import { playSfx } from '../audio';
 type Tone = 'ochre' | 'moss' | 'paper' | 'dusk' | 'berry';
 
 const TONES: Record<Tone, { bg: string; fg: string; shadow: string }> = {
-  ochre: { bg: 'var(--color-ochre)', fg: '#fffaf0', shadow: 'var(--color-ochre-deep)' },
-  moss: { bg: 'var(--color-moss)', fg: '#fffaf0', shadow: 'var(--color-moss-deep)' },
+  ochre: { bg: 'var(--color-ochre)', fg: 'var(--color-cream)', shadow: 'var(--color-ochre-deep)' },
+  moss: { bg: 'var(--color-moss)', fg: 'var(--color-cream)', shadow: 'var(--color-moss-deep)' },
   paper: { bg: 'var(--color-paper)', fg: 'var(--color-ink)', shadow: 'var(--color-paper-edge)' },
-  dusk: { bg: 'var(--color-dusk)', fg: '#fffaf0', shadow: 'var(--color-dusk-deep)' },
-  berry: { bg: 'var(--color-berry)', fg: '#fffaf0', shadow: '#8e2c40' },
+  dusk: { bg: 'var(--color-dusk)', fg: 'var(--color-cream)', shadow: 'var(--color-dusk-deep)' },
+  berry: { bg: 'var(--color-berry)', fg: 'var(--color-cream)', shadow: '#8e2c40' },
 };
 
 /** Круглая «бумажная» кнопка. size — диаметр в пикселях холста 1920×1080. */
@@ -120,6 +120,8 @@ export function HoldButton({
   return (
     <div className="relative flex items-center justify-center" style={{ width: outer, height: outer }}>
       <svg viewBox={`0 0 ${outer} ${outer}`} className="pointer-events-none absolute inset-0" aria-hidden>
+        {/* Тёмная дорожка под кольцом: светлое кольцо на небе без неё почти не видно (1,6:1 → 3,4:1). */}
+        <circle cx={outer / 2} cy={outer / 2} r={R} fill="none" stroke="var(--color-ink)" strokeOpacity={0.45} strokeWidth={ring + 6} opacity={progress > 0 ? 1 : 0} />
         <circle
           cx={outer / 2}
           cy={outer / 2}

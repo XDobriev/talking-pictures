@@ -3,7 +3,7 @@ import { SCENES } from '../data/scenes';
 import { farm } from '../data/scenes/farm';
 import { forest } from '../data/scenes/forest';
 import { yard } from '../data/scenes/yard';
-import { PHRASES } from '../data/phrases';
+import { PHRASES, nameLabel } from '../data/phrases';
 import type { SceneDef } from './types';
 import { resolveTargets, validateScene } from './query';
 
@@ -164,5 +164,16 @@ describe('сцена «Двор»', () => {
 
   it('«кому грустно» — девочка с шариком и мальчик с мороженым', () => {
     expect(ids('yard_sad').sort()).toEqual(['boy_sad', 'girl_sad']);
+  });
+});
+
+describe('подписи слотов', () => {
+  it('у каждого героя — русское имя из фразы-названия', () => {
+    for (const s of SCENES)
+      for (const o of s.objects) {
+        const label = nameLabel(o.voice.name);
+        expect(label, `${s.id}/${o.id}`).toMatch(/^[а-яё][а-яё -]*$/i);
+      }
+    expect(nameLabel('squirrel_name')).toBe('белочка');
   });
 });

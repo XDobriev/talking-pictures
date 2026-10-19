@@ -9,7 +9,7 @@ export function StartScreen({ onPlay }: { onPlay(): void }) {
       <div className="absolute inset-0 scale-105 blur-[6px] brightness-[0.92]">
         <SceneBackground id="forest/bg" />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-b from-[#2f3b2a]/10 via-transparent to-[#2f3b2a]/35" />
+      <div className="absolute inset-0 bg-gradient-to-b from-night/10 via-transparent to-night/35" />
 
       <motion.div
         className="paper absolute left-1/2 top-[150px] w-[1060px] -translate-x-1/2 rounded-[64px] px-16 pb-12 pt-10 text-center"
@@ -44,7 +44,7 @@ export function StartScreen({ onPlay }: { onPlay(): void }) {
           if (!e.isPrimary) return;
           onPlay();
         }}
-        className="cut paper absolute left-1/2 top-[720px] flex h-[250px] w-[250px] -translate-x-1/2 items-center justify-center rounded-full text-[#fffaf0]"
+        className="cut paper absolute left-1/2 top-[720px] flex h-[250px] w-[250px] -translate-x-1/2 items-center justify-center rounded-full text-cream"
         style={{ backgroundColor: 'var(--color-moss)', ['--cut-shadow' as string]: 'var(--color-moss-deep)', fontSize: 30 }}
         initial={{ scale: 0 }}
         animate={{ scale: [1, 1.06, 1] }}

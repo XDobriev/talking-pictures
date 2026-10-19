@@ -99,7 +99,7 @@ export function AlbumScreen({ onHome }: { onHome(): void }) {
             key={o.id}
             data-sticker={o.id}
             onPointerDown={(e) => down(e, o.id)}
-            className="absolute touch-none rounded-[40px] bg-[#fffaf0] p-5"
+            className="absolute touch-none rounded-[40px] bg-cream p-5"
             style={{
               left: `${p.x}%`,
               top: `${p.y}%`,

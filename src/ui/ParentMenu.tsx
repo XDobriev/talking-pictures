@@ -32,7 +32,7 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange(v: boolean): vo
       style={{ background: on ? 'var(--color-moss-deep)' : 'rgba(61,58,47,0.3)' }}
     >
       <motion.span
-        className="absolute top-[9px] h-[70px] w-[70px] rounded-full bg-[#fffaf0] shadow"
+        className="absolute top-[9px] h-[70px] w-[70px] rounded-full bg-cream shadow"
         animate={{ left: on ? 81 : 9 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       />
@@ -48,7 +48,7 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
 
   return (
     <div className="absolute inset-0 z-[80] flex items-center justify-center" data-testid="parent-menu">
-      <div className="absolute inset-0 bg-[#1f271c]/70" />
+      <div className="absolute inset-0 bg-scrim/70" />
       <motion.div
         className="paper relative flex h-[1010px] w-[1820px] overflow-hidden rounded-[56px]"
         style={{ boxShadow: '0 14px 0 0 var(--color-paper-edge), 0 40px 80px -20px rgba(0,0,0,0.6)' }}
@@ -70,7 +70,7 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
               type="button"
               onPointerDown={() => setTab(id)}
               className="rounded-[28px] px-6 py-6 text-left text-[48px] font-bold transition-colors"
-              style={{ background: tab === id ? '#fffaf0' : 'transparent', color: tab === id ? 'var(--color-ink)' : 'var(--color-ink-soft)' }}
+              style={{ background: tab === id ? 'var(--color-cream)' : 'transparent', color: tab === id ? 'var(--color-ink)' : 'var(--color-ink-soft)' }}
             >
               {title}
             </button>
@@ -105,7 +105,7 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
                   <div className="text-[42px] font-extrabold uppercase tracking-wide text-moss-deep">{s.title}</div>
                   <ul className="mt-3 flex flex-col gap-3">
                     {s.parentQuestions.map((q) => (
-                      <li key={q} className="rounded-[24px] bg-[#fffaf0] px-8 py-6 text-[44px] leading-snug">
+                      <li key={q} className="rounded-[24px] bg-cream px-8 py-6 text-[44px] leading-snug">
                         {q}
                       </li>
                     ))}
@@ -120,7 +120,7 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
               <h3 className="font-display text-[60px] leading-tight">Настройки</h3>
               <div className="mt-6 flex flex-col gap-4">
                 {TOGGLES.map((t) => (
-                  <div key={t.key} className="flex items-center gap-8 rounded-[28px] bg-[#fffaf0] px-8 py-6">
+                  <div key={t.key} className="flex items-center gap-8 rounded-[28px] bg-cream px-8 py-6">
                     <div className="flex-1">
                       <div className="text-[46px] font-bold leading-tight">{t.title}</div>
                       <div className="text-[40px] leading-snug text-ink-soft">{t.hint}</div>

@@ -32,7 +32,7 @@ export function RotateOverlay() {
 /** Имитация рекламы в моке и блокировка ввода на время реального показа. */
 export function AdOverlay({ mock }: { mock: boolean }) {
   return (
-    <div className="absolute inset-0 z-[90] flex items-center justify-center bg-[#1f271c]/85" data-testid="ad">
+    <div className="absolute inset-0 z-[90] flex items-center justify-center bg-scrim/85" data-testid="ad">
       {mock && <div className="rounded-[32px] bg-paper px-12 py-8 font-display text-[48px] text-ink-soft">Здесь будет реклама</div>}
     </div>
   );

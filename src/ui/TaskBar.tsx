@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ObjectArt } from '../art';
+import { nameLabel } from '../data/phrases';
 import type { SceneDef, SceneObject } from '../game/types';
 
 // Панель заданий: бумажная полоска внизу по центру со слотами-силуэтами.
@@ -49,7 +50,7 @@ export function TaskBar({ scene, targets, found, current, hideSilhouettes, wiggl
           <button
             key={t.id}
             type="button"
-            aria-label={`слот ${t.id}`}
+            aria-label={`слот: ${nameLabel(t.voice.name)}`}
             data-slot={t.id}
             onPointerDown={(e) => {
               if (!e.isPrimary) return;
@@ -62,7 +63,7 @@ export function TaskBar({ scene, targets, found, current, hideSilhouettes, wiggl
               top: 14,
               width: SLOT,
               height: SLOT,
-              background: isFound ? '#fffaf0' : 'rgba(61,58,47,0.08)',
+              background: isFound ? 'var(--color-cream)' : 'rgba(61,58,47,0.08)',
               outline: isCurrent ? '6px solid var(--color-ochre)' : '3px dashed rgba(61,58,47,0.22)',
               outlineOffset: isCurrent ? 2 : -8,
               transition: 'outline-color 300ms, background 300ms',
@@ -82,7 +83,7 @@ export function TaskBar({ scene, targets, found, current, hideSilhouettes, wiggl
                 <ObjectArt scene={scene} obj={t} silhouette />
               </div>
             ) : (
-              <div key={wiggleKey} className={`absolute inset-0 flex items-center justify-center font-display text-[84px] text-ink/35 ${wiggleKey ? 'jelly' : ''}`}>
+              <div key={wiggleKey} className={`absolute inset-0 flex items-center justify-center font-display text-[84px] text-ink/60 ${wiggleKey ? 'jelly' : ''}`}>
                 ?
               </div>
             )}

@@ -43,7 +43,7 @@ export function ParentGate({ onPass, onCancel }: { onPass(): void; onCancel(): v
 
   return (
     <div className="absolute inset-0 z-[80] flex items-center justify-center" data-testid="parent-gate">
-      <div className="absolute inset-0 bg-[#1f271c]/70" onPointerDown={onCancel} />
+      <div className="absolute inset-0 bg-scrim/70" onPointerDown={onCancel} />
       <motion.div
         className="paper relative flex w-[1640px] flex-col items-center rounded-[56px] px-14 py-12 text-center"
         style={{ boxShadow: '0 14px 0 0 var(--color-paper-edge), 0 40px 80px -20px rgba(0,0,0,0.6)' }}
@@ -82,7 +82,7 @@ export function ParentGate({ onPass, onCancel }: { onPass(): void; onCancel(): v
                 if (!e.isPrimary) return;
                 press(d);
               }}
-              className="cut flex h-[150px] w-[150px] items-center justify-center rounded-[36px] bg-dusk font-display leading-none text-[#fffaf0]"
+              className="cut flex h-[150px] w-[150px] items-center justify-center rounded-[36px] bg-dusk font-display leading-none text-cream"
               // .cut считает тень от размера шрифта кнопки, поэтому крупная цифра — во внутреннем span.
               style={{ fontSize: 19, ['--cut-shadow' as string]: 'var(--color-dusk-deep)' }}
             >

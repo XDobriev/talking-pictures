@@ -42,7 +42,7 @@ export function WinOverlay({
 
   return (
     <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} data-testid="win">
-      <div className="absolute inset-0 bg-[#2f3b2a]/45" />
+      <div className="absolute inset-0 bg-night/45" />
       <motion.div
         className="paper relative flex w-[980px] flex-col items-center rounded-[72px] px-16 pb-14 pt-10"
         style={{ boxShadow: '0 16px 0 0 var(--color-paper-edge), 0 40px 80px -20px rgba(20,15,5,0.55)' }}
@@ -66,7 +66,7 @@ export function WinOverlay({
         </div>
 
         <motion.div
-          className="relative mt-6 h-[300px] w-[300px] rounded-[48px] bg-[#fffaf0] p-6"
+          className="relative mt-6 h-[300px] w-[300px] rounded-[48px] bg-cream p-6"
           style={{ boxShadow: '0 8px 0 0 #e5dccb, 0 0 0 10px #fff inset', rotate: '-4deg' }}
           initial={{ scale: 0, rotate: -30 }}
           animate={{ scale: 1, rotate: -4 }}

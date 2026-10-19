@@ -30,7 +30,7 @@ export function FoundFlight({ scene, obj, to, mood }: { scene: SceneDef; obj: Sc
       }}
       transition={{ duration: 1.1, times: [0, 0.25, 0.6, 1], ease: 'easeInOut' }}
     >
-      <div className="h-full w-full" style={{ filter: 'drop-shadow(0 0 30px rgba(255,243,176,0.9)) drop-shadow(0 0 0 #fffaf0)' }}>
+      <div className="h-full w-full" style={{ filter: 'drop-shadow(0 0 30px rgba(255,243,176,0.9)) drop-shadow(0 0 0 var(--color-cream))' }}>
         <ObjectArt scene={scene} obj={obj} mood={mood} />
       </div>
     </motion.div>
