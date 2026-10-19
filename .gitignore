@@ -12,3 +12,7 @@ sfx-src
 voice/logs
 voice-compare
 dist-*
+
+# видео: рабочая папка и пробные записи до полной озвучки
+promo/.video-work
+promo/gameplay.mp4

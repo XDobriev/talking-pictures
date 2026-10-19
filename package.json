@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "show": "vite --host --port 5180",
     "clean": "node scripts/clean.mjs dist",
     "build": "npm run clean && tsc -b && vite build",
     "analyze": "node scripts/clean.mjs dist-analyze && vite build --config vite.analyze.config.ts",
@@ -20,7 +21,8 @@
     "promo": "node scripts/promo-texts.mjs && npm run build && node scripts/promo.mjs",
     "voice:csv": "node scripts/voice.mjs --csv",
     "sdk:proxy": "sdk-dev-proxy -p dist --dev-mode=true --port 8091",
-    "sdk:check": "node scripts/sdk-check.mjs"
+    "sdk:check": "node scripts/sdk-check.mjs",
+    "video": "npm run build && node scripts/video.mjs"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.3.0",
@@ -42,6 +44,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "@yandex-games/sdk-dev-proxy": "^0.0.2",
     "fflate": "^0.8.3",
+    "ffmpeg-static": "^5.3.0",
     "mpg123-decoder": "^1.0.3",
     "playwright": "^1.50.0",
     "sharp": "^0.35.5",
