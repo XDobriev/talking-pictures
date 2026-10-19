@@ -146,6 +146,28 @@ const SYNTH: Record<SfxName, () => void> = {
     tone('triangle', 160, 110, 0.22, 0.25);
     noise(0.15, 400, 1, 0.08);
   },
+  // --- ферма: грубые наброски, голос всё равно называет звукоподражание ---
+  moo: () => warble(150, 5, 8, 0.9, 'sawtooth', 0.08),
+  bark: () => {
+    for (const d of [0, 0.2]) {
+      tone('square', 520, 300, 0.09, 0.1, d);
+      noise(0.08, 900, 1, 0.12, d);
+    }
+  },
+  meow: () => {
+    tone('triangle', 600, 950, 0.18, 0.18);
+    tone('triangle', 950, 520, 0.35, 0.18, 0.17);
+  },
+  baa: () => warble(420, 8, 45, 0.6, 'sawtooth', 0.07),
+  cluck: () => {
+    [0, 0.12, 0.24].forEach((d) => tone('square', 720, 460, 0.05, 0.07, d));
+  },
+  neigh: () => warble(760, 13, 140, 0.7, 'sawtooth', 0.05),
+  crow: () => {
+    tone('sawtooth', 520, 820, 0.18, 0.07);
+    tone('sawtooth', 820, 860, 0.25, 0.07, 0.2);
+    tone('sawtooth', 860, 480, 0.4, 0.07, 0.47);
+  },
 };
 
 const FILES = import.meta.glob('../assets/sfx/*.{mp3,ogg,wav}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;

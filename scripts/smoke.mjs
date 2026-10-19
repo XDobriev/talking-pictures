@@ -148,6 +148,34 @@ try {
     await page.getByTestId('menu').waitFor({ timeout: 6000 });
   });
 
+  await step('вкладка «Ферма» → меню фермы', async () => {
+    await tapId(page, 'сцена farm');
+    await page.getByTestId('сцена forest').waitFor({ timeout: 5000 });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: `${OUT}/13-farm-menu.png` });
+  });
+
+  await step('ферма: уровень 1 проходится', async () => {
+    await tapId(page, 'уровень 1');
+    await page.locator('[data-level="farm_who1"]').waitFor({ timeout: 8000 });
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: `${OUT}/14-farm-level1.png` });
+    for (const id of ['cow', 'pig', 'dog']) {
+      await tapObj(id);
+      await page.waitForTimeout(300);
+    }
+    await page.getByTestId('win').waitFor({ timeout: 15000 });
+    await page.waitForTimeout(2600);
+    await page.screenshot({ path: `${OUT}/15-farm-win.png` });
+  });
+
+  await step('ферма: «домой» возвращает в меню фермы', async () => {
+    // «домой» в окне победы (верхняя кнопка под затемнением)
+    const box = await page.getByTestId('win').getByTestId('домой').boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.getByTestId('сцена forest').waitFor({ timeout: 5000 });
+  });
+
   await step('телефон 6.1″ (844×390) — холст вписан', async () => {
     const phone = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
     const p = await phone.newPage();

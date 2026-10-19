@@ -7,11 +7,11 @@ export interface Rect {
   h: number;
 }
 
-export type Kind = 'animal' | 'bird' | 'insect' | 'plant' | 'mushroom' | 'thing';
+export type Kind = 'animal' | 'bird' | 'insect' | 'plant' | 'mushroom' | 'vegetable' | 'thing';
 export type Color = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'brown' | 'white' | 'grey' | 'black' | 'pink';
 export type Size = 'small' | 'medium' | 'big';
 export type Action = 'sleep' | 'eat' | 'jump' | 'sit' | 'fly' | 'swim' | 'hide' | 'look' | 'grow' | 'crawl' | 'sing';
-export type Place = 'on_tree' | 'under_tree' | 'in_grass' | 'in_water' | 'in_sky' | 'on_stump' | 'behind_bush' | 'on_path';
+export type Place = 'on_tree' | 'under_tree' | 'in_grass' | 'in_water' | 'in_sky' | 'on_stump' | 'behind_bush' | 'on_path' | 'on_fence' | 'in_garden';
 export type Emotion = 'happy' | 'sad' | 'scared' | 'sleepy' | 'calm';
 
 export interface ObjectTags {
@@ -73,7 +73,14 @@ export type SfxName =
   | 'bubble'
   | 'whoosh'
   | 'sparkle'
-  | 'grunt';
+  | 'grunt'
+  | 'moo'
+  | 'bark'
+  | 'meow'
+  | 'baa'
+  | 'cluck'
+  | 'neigh'
+  | 'crow';
 
 /** Задание уровня — запрос по признакам объектов. */
 export interface TaskQuery {

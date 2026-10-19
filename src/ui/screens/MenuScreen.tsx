@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { ObjectArt, SceneBackground } from '../../art';
+import { playSfx } from '../../audio/sfx';
+import { SCENES } from '../../data/scenes';
 import { resolveTargets } from '../../game/query';
 import { useStore } from '../../game/store';
 import type { SceneDef } from '../../game/types';
@@ -22,12 +24,21 @@ const PATH: { x: number; y: number }[] = [
   { x: 1690, y: 260 },
 ];
 
-const COMING = [
-  { id: 'farm', title: 'Ферма' },
-  { id: 'yard', title: 'Двор' },
-];
+const COMING = [{ id: 'yard', title: 'Двор' }];
 
-export function MenuScreen({ scene, onLevel, onParent, onAlbum }: { scene: SceneDef; onLevel(i: number): void; onParent(): void; onAlbum(): void }) {
+export function MenuScreen({
+  scene,
+  onScene,
+  onLevel,
+  onParent,
+  onAlbum,
+}: {
+  scene: SceneDef;
+  onScene(id: string): void;
+  onLevel(i: number): void;
+  onParent(): void;
+  onAlbum(): void;
+}) {
   const { save } = useStore();
   const next = scene.levels.findIndex((l) => !save.completed.includes(l.id));
 
@@ -87,14 +98,35 @@ export function MenuScreen({ scene, onLevel, onParent, onAlbum }: { scene: Scene
         );
       })}
 
-      {/* Вкладки сцен: другие миры пока «скоро» */}
+      {/* Вкладки сцен: текущая — крупная бумажная, другие готовые — нажимаются, остальные пока «скоро» */}
       <div className="absolute left-[40px] top-[40px] flex items-center gap-5">
         <RoundButton label="альбом" onPress={onAlbum} size={120} tone="berry">
           <AlbumIcon />
         </RoundButton>
-        <div className="paper flex h-[96px] items-center rounded-full px-10 font-display text-[50px]" style={{ boxShadow: '0 8px 0 0 var(--color-paper-edge)' }}>
-          {scene.title}
-        </div>
+        {SCENES.map((s) =>
+          s.id === scene.id ? (
+            <div key={s.id} className="paper flex h-[96px] items-center rounded-full px-10 font-display text-[50px]" style={{ boxShadow: '0 8px 0 0 var(--color-paper-edge)' }}>
+              {s.title}
+            </div>
+          ) : (
+            <motion.button
+              key={s.id}
+              type="button"
+              aria-label={s.title}
+              data-testid={`сцена ${s.id}`}
+              onPointerDown={(e) => {
+                if (!e.isPrimary) return;
+                playSfx('whoosh');
+                onScene(s.id);
+              }}
+              className="paper flex h-[84px] items-center rounded-full px-8 font-display text-[40px]"
+              style={{ boxShadow: '0 6px 0 0 var(--color-paper-edge)' }}
+              whileTap={{ scale: 0.94, y: 4 }}
+            >
+              {s.title}
+            </motion.button>
+          ),
+        )}
         {COMING.map((c) => (
           <div key={c.id} className="flex h-[80px] items-center gap-3 rounded-full bg-paper/55 px-7 font-display text-[36px] text-ink/45">
             <span className="h-9 w-9 text-ink/40">

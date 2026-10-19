@@ -16,11 +16,11 @@ import { Stage } from './ui/Stage';
 
 type Screen = { name: 'start' } | { name: 'menu' } | { name: 'album' } | { name: 'level'; index: number; run: number };
 
-const scene = SCENES[0];
-
 export function App() {
   const { platform, save } = useStore();
   const [screen, setScreen] = useState<Screen>({ name: 'start' });
+  const [sceneId, setSceneId] = useState(SCENES[0].id);
+  const scene = SCENES.find((s) => s.id === sceneId) ?? SCENES[0];
   const [overlay, setOverlay] = useState<null | 'gate' | 'parent'>(null);
   const [ad, setAd] = useState(false);
 
@@ -67,7 +67,7 @@ export function App() {
     <Stage>
       <AnimatePresence mode="wait">
         <motion.div
-          key={screen.name === 'level' ? `level-${screen.index}-${screen.run}` : screen.name}
+          key={screen.name === 'level' ? `level-${screen.index}-${screen.run}` : screen.name === 'menu' ? `menu-${sceneId}` : screen.name}
           className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -78,6 +78,7 @@ export function App() {
           {screen.name === 'menu' && (
             <MenuScreen
               scene={scene}
+              onScene={setSceneId}
               onLevel={(i) => void startLevel(i, false)}
               onParent={() => setOverlay('gate')}
               onAlbum={() => go({ name: 'album' })}
