@@ -201,8 +201,9 @@ if (args.recut) {
 
 function batchPrompt(items, mood) {
   const lines = items.map(([, p]) => withAccents(p)).join('\n\n');
-  // --plain: только фразы, без инструкции. Модели 3.x иначе зачитывают инструкцию вслух,
-  // а systemInstruction они не принимают («Developer instruction is not enabled»). Цена — нет управления подачей.
+  // --plain: только фразы, без инструкции. Модели 3.8 иначе зачитывают инструкцию вслух,
+  // а systemInstruction не принимают («Developer instruction is not enabled», перепроверено 19.10). Цена — нет управления подачей.
+  // gemini-3.1-flash-tts-preview инструкцию в тексте понимает и вслух не читает — ей --plain не нужен.
   if (args.plain) return lines;
   return (
     `Прочитай по-русски ${STYLE[mood]} фразы ниже, строго по порядку, каждую ровно как написано. ` +
