@@ -10,7 +10,13 @@
     "test": "vitest run",
     "typecheck": "tsc -b --noEmit",
     "zip": "node scripts/zip.mjs",
-    "e2e": "node scripts/smoke.mjs"
+    "release": "tsc -b && vite build && node scripts/zip.mjs",
+    "e2e": "node scripts/smoke.mjs",
+    "voice": "node scripts/voice.mjs --batch=14",
+    "voice:qa": "node scripts/voice-qa.mjs",
+    "voice:csv": "node scripts/voice.mjs --csv",
+    "sdk:proxy": "sdk-dev-proxy -p dist --dev-mode=true --port 8091",
+    "sdk:check": "node scripts/sdk-check.mjs"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.3.0",
@@ -32,6 +38,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "@yandex-games/sdk-dev-proxy": "^0.0.2",
     "fflate": "^0.8.3",
+    "mpg123-decoder": "^1.0.3",
     "playwright": "^1.50.0",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
