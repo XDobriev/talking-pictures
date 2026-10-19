@@ -1,7 +1,7 @@
 import type { SfxName } from '../game/types';
 
-// Процедурные звуки на Web Audio: прототип звучит без единого аудиофайла.
-// Когда появятся настоящие записи — положить в src/assets/sfx/<name>.mp3, они подхватятся автоматически.
+// Процедурные звуки на Web Audio — запасной вариант.
+// Настоящие записи лежат в src/assets/sfx/<name>.mp3 (scripts/sfx.mjs, CC0) и подхватываются автоматически.
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -159,6 +159,11 @@ const SYNTH: Record<SfxName, () => void> = {
     tone('triangle', 950, 520, 0.35, 0.18, 0.17);
   },
   baa: () => warble(420, 8, 45, 0.6, 'sawtooth', 0.07),
+  bleat: () => warble(520, 11, 60, 0.5, 'sawtooth', 0.07),
+  peep: () => {
+    tone('sine', 3000, 3400, 0.07, 0.1);
+    tone('sine', 3000, 3400, 0.07, 0.1, 0.15);
+  },
   cluck: () => {
     [0, 0.12, 0.24].forEach((d) => tone('square', 720, 460, 0.05, 0.07, d));
   },

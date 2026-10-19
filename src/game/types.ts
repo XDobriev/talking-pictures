@@ -78,6 +78,8 @@ export type SfxName =
   | 'bark'
   | 'meow'
   | 'baa'
+  | 'bleat'
+  | 'peep'
   | 'cluck'
   | 'neigh'
   | 'crow';

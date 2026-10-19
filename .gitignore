@@ -8,3 +8,4 @@ test-results
 screenshots/tmp
 voice/raw
 .claude/settings.local.json
+sfx-src
