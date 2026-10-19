@@ -3,7 +3,9 @@ import { phraseText } from '../data/phrases';
 
 // Голос рассказчика.
 // 1) Если для фразы есть файл src/assets/voice/<id>.mp3 (или .ogg) — играем его.
-// 2) Иначе — встроенный синтез речи браузера (временный голос прототипа).
+// 2) Иначе в разработке — встроенный синтез речи браузера (заглушка для ещё не озвученных фраз).
+//    В релизе синтеза нет: звучит плохо, а п. 1.23 требований Яндекса запрещает генерацию на лету.
+//    Полноту озвучки перед упаковкой проверяет scripts/zip.mjs.
 
 const FILES = import.meta.glob('../assets/voice/*.{mp3,ogg}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const voiceUrls = new Map<string, string[]>();
@@ -83,7 +85,7 @@ function playFile(urls: string[], gen: number): Promise<void> {
 
 function speakSynth(text: string): Promise<void> {
   return new Promise((resolve) => {
-    if (!('speechSynthesis' in window) || !text) return resolve();
+    if (import.meta.env.PROD || !('speechSynthesis' in window) || !text) return resolve();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ru-RU';
     if (ruVoice) u.voice = ruVoice;

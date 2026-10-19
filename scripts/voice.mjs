@@ -3,12 +3,13 @@
 //   node scripts/voice.mjs --cast            — кастинг: 3 фразы × несколько голосов → voice-casting/ (слушать и выбрать)
 //   node scripts/voice.mjs --voice=Sulafat   — озвучить всё выбранным голосом (готовые файлы пропускаются)
 //   node scripts/voice.mjs --only=owl_name,owl_fact --force   — переозвучить отдельные фразы
-//   node scripts/voice.mjs --csv             — выгрузить таблицу фраз в voice/phrases.csv (для SpeechKit и проверки)
+//   node scripts/voice.mjs --recut [--only=…]  — перерезать сохранённые пачки (voice/raw/batch-*) без запросов
+//   node scripts/voice.mjs --csv            — выгрузить таблицу фраз в voice/phrases.csv (для SpeechKit и проверки)
 //
 // Ключ: GEMINI_API_KEY в файле .env (Google AI Studio → Create API key). В репозиторий .env не попадает.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { PHRASES } from '../src/data/phrases.ts';
-import { polish, toMp3 } from './lib/audio.mjs';
+import { phraseWeight, polish, splitPhrases, toMp3 } from './lib/audio.mjs';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -171,41 +172,22 @@ skipped = ordered.length - todo.length;
 // Лимит бесплатного ключа считается в запросах, поэтому просим прочитать 10–14 фраз подряд
 // с длинными паузами и режем результат по самым длинным паузам.
 
-/** Границы фраз: N−1 самых длинных пауз (тишина ≥ 250 мс). null — если пауз меньше, чем нужно. */
-function splitBySilence(pcm, n) {
-  const frame = Math.round(RATE * 0.02);
-  const frames = Math.floor(pcm.length / frame);
-  const loud = new Array(frames);
-  for (let f = 0; f < frames; f++) {
-    let sum = 0;
-    for (let i = f * frame; i < (f + 1) * frame; i++) sum += pcm[i] * pcm[i];
-    loud[f] = Math.sqrt(sum / frame) > 420;
+// Нарезка — splitPhrases из lib/audio.mjs. Запись пачки целиком кладём в voice/raw/batch-*.pcm
+// (+ .json со списком фраз), чтобы при ошибке перерезать без нового запроса: --recut.
+
+if (args.recut) {
+  for (const f of readdirSync(RAW).filter((x) => /^batch-.*\.json$/.test(x))) {
+    const ids = JSON.parse(readFileSync(`${RAW}/${f}`, 'utf8'));
+    const buf = readFileSync(`${RAW}/${f.replace('.json', '.pcm')}`);
+    const parts = splitPhrases(new Int16Array(buf.buffer, buf.byteOffset, buf.length / 2), ids.map((id) => phraseWeight(PHRASES[id].text)));
+    if (!parts) continue;
+    parts.forEach((part, k) => {
+      if (only && !only.includes(ids[k])) return;
+      writeFileSync(`${OUT}/${ids[k]}.mp3`, toMp3(polish(part)));
+      console.log(`✓ ${ids[k]}  ${(part.length / RATE).toFixed(1)} с`);
+    });
   }
-  const gaps = [];
-  let start = -1;
-  for (let f = 0; f <= frames; f++) {
-    const silent = f < frames && !loud[f];
-    if (silent && start < 0) start = f;
-    if (!silent && start >= 0) {
-      const len = f - start;
-      // паузы по краям записи не считаются границами
-      if (start > 0 && f < frames && len >= 12) gaps.push({ start, end: f, len });
-      start = -1;
-    }
-  }
-  if (gaps.length < n - 1) return null;
-  const cuts = gaps
-    .sort((a, b) => b.len - a.len)
-    .slice(0, n - 1)
-    .sort((a, b) => a.start - b.start)
-    .map((g) => Math.round(((g.start + g.end) / 2) * frame));
-  const parts = [];
-  let prev = 0;
-  for (const c of [...cuts, pcm.length]) {
-    parts.push(pcm.slice(prev, c));
-    prev = c;
-  }
-  return parts;
+  process.exit(0);
 }
 
 function batchPrompt(items, mood) {
@@ -237,23 +219,34 @@ if (args.batch) {
       const chunk = items.slice(i, i + size);
       try {
         const pcm = await withRetry(() => tts(batchPrompt(chunk, mood), v, model), `${key} ×${chunk.length}`);
-        const parts = splitBySilence(pcm, chunk.length);
+        const batchId = `batch-${Date.now()}`;
+        keepRaw(batchId, pcm);
+        writeFileSync(`${RAW}/${batchId}.json`, JSON.stringify(chunk.map(([id]) => id)));
+        const parts = splitPhrases(pcm, chunk.map(([, p]) => phraseWeight(p.text)));
         if (!parts) {
           console.log(`✗ ${key}: не удалось разрезать на ${chunk.length} фраз — эти фразы озвучу поштучно`);
           failed.push(...chunk.map(([id]) => id));
           continue;
         }
-        // проверка правдоподобия: длительность на букву не должна сильно отличаться от медианы пакета
-        const rates = parts.map((p, k) => p.length / RATE / chunk[k][1].text.length);
+        // Проверка правдоподобия: у хороших записей 0,08–0,18 с на единицу веса (медиана 0,11).
+        // Модель бывает недочитывает пачку или зачитывает вслух саму инструкцию (так было с gemini-3.8-flash-tts) —
+        // тогда куски выходят за 0,05–0,3, и вся пачка отбрасывается: соседние фразы при этом тоже съезжают.
+        const clean = parts.map((part) => polish(part));
+        const rates = clean.map((c, k) => c.length / RATE / phraseWeight(chunk[k][1].text));
         const med = [...rates].sort((a, b) => a - b)[Math.floor(rates.length / 2)];
-        parts.forEach((part, k) => {
+        const odd = rates.map((r, k) => (r < 0.05 || r > 0.3 || med > 0.18 ? chunk[k][0] : null)).filter(Boolean);
+        if (odd.length) {
+          console.log(`✗ ${key}: неправдоподобная длительность у ${odd.join(', ')} — пачка отброшена (сырой звук: ${RAW}/${batchId}.pcm)`);
+          failed.push(...chunk.map(([id]) => id));
+          await sleep(Number(args.delay ?? 3000));
+          continue;
+        }
+        clean.forEach((c, k) => {
           const [id, p] = chunk[k];
-          keepRaw(id, part);
-          writeFileSync(`${OUT}/${id}.mp3`, toMp3(polish(part)));
+          writeFileSync(`${OUT}/${id}.mp3`, toMp3(c));
           made++;
-          const odd = rates[k] > med * 2.6 || rates[k] < med / 2.6;
-          if (odd) review.push(id);
-          console.log(`${odd ? '?' : '✓'} ${id}  «${p.text}»  ${(part.length / RATE).toFixed(1)} с  [${v}]`);
+          review.push(id);
+          console.log(`✓ ${id}  «${p.text}»  ${(c.length / RATE).toFixed(1)} с  [${v}]`);
         });
       } catch (e) {
         console.log(`✗ ${key}: ${e.message}`);
@@ -266,10 +259,11 @@ if (args.batch) {
       await sleep(Number(args.delay ?? 3000));
     }
   }
-  if (review.length) writeFileSync('voice/review.txt', review.join('\n') + '\n');
+  // пачечные файлы обязательно проверить расшифровкой: нарезка может съехать при правдоподобных длительностях
+  if (review.length) writeFileSync('voice/new.txt', review.join('\n') + '\n');
   console.log(
     `\nГотово: новых ${made}, уже были ${skipped}, не вышло ${failed.length}.` +
-      (review.length ? `\nПослушайте подозрительные (${review.length}): voice/review.txt` : ''),
+      (review.length ? `\nПроверьте новые (${review.length}): npm run voice:qa -- --no-trim --only=voice/new.txt --delete-bad` : ''),
   );
   process.exit(0);
 }

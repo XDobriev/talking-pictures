@@ -17,8 +17,16 @@ if (existsSync('.env')) {
   }
 }
 const DIR = 'src/assets/voice';
-const MODEL = String(args.model ?? 'gemini-2.5-flash');
-const files = readdirSync(DIR).filter((f) => f.endsWith('.mp3'));
+// У каждой модели свой суточный лимит: кончился у одной — берём следующую. 2.5-flash закрыта для новых ключей.
+const MODELS = args.model
+  ? String(args.model).split(',')
+  : ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+let MODEL = MODELS.shift();
+// --only=voice/review.txt (или id через запятую) — проверить только эти; --size=1 — по одному файлу на запрос
+const only = args.only
+  ? new Set((existsSync(args.only) ? readFileSync(args.only, 'utf8').split(/\s+/) : String(args.only).split(',')).filter(Boolean))
+  : null;
+const files = readdirSync(DIR).filter((f) => f.endsWith('.mp3') && (!only || only.has(f.replace(/\.mp3$/, ''))));
 
 // ---------- 1. тишина ----------
 const decoder = new MPEGDecoder();
@@ -26,7 +34,7 @@ await decoder.ready;
 const durations = {};
 for (const f of files) {
   const buf = readFileSync(`${DIR}/${f}`);
-  decoder.reset();
+  await decoder.reset(); // reset() асинхронный: без await декодер работает с освобождённой памятью и падает
   const { channelData, sampleRate } = decoder.decode(new Uint8Array(buf));
   const ch = channelData[0];
   const pcm = new Int16Array(ch.length);
@@ -39,12 +47,15 @@ decoder.free();
 console.log(`Тишина подрезана: ${files.length} файлов`);
 
 // ---------- 2. расшифровка ----------
-async function transcribe(batch) {
+async function transcribe(batch, attempt = 0) {
+  // Пачкой модель путает порядок ответов, поэтому надёжен только режим по одному (--size=1): там JSON не нужен
+  const single = batch.length === 1;
   const parts = [
     {
-      text:
-        `Ниже ${batch.length} коротких аудиозаписей на русском. Для каждой по порядку дословно запиши, что произнесено ` +
-        `(со всеми словами, включая звукоподражания). Ответь только JSON-массивом строк длиной ${batch.length}.`,
+      text: single
+        ? 'Дословно запиши, что произнесено в этой короткой аудиозаписи на русском (со всеми словами, включая звукоподражания). Ответь только текстом.'
+        : `Ниже ${batch.length} коротких аудиозаписей на русском. Для каждой по порядку дословно запиши, что произнесено ` +
+          `(со всеми словами, включая звукоподражания). Ответь только JSON-массивом строк длиной ${batch.length}.`,
     },
   ];
   for (const f of batch) parts.push({ inlineData: { mimeType: 'audio/mp3', data: readFileSync(`${DIR}/${f}`).toString('base64') } });
@@ -52,17 +63,36 @@ async function transcribe(batch) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
     signal: AbortSignal.timeout(90000),
-    body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }),
+    body: JSON.stringify({ contents: [{ parts }], generationConfig: single ? { temperature: 0 } : { responseMimeType: 'application/json', temperature: 0 } }),
   });
+  if (res.status === 404 && MODELS.length) {
+    MODEL = MODELS.shift();
+    console.log(`  … модель недоступна, переключаюсь на ${MODEL}`);
+    return transcribe(batch, attempt);
+  }
+  if (res.status === 429 && attempt < 4) {
+    // поминутный лимит — ждём, сколько просит сервер; суточный — ждать бессмысленно
+    const body = await res.text();
+    if (/PerDay/i.test(body)) {
+      if (!MODELS.length) throw Object.assign(new Error('суточный лимит исчерпан у всех моделей'), { daily: true });
+      MODEL = MODELS.shift();
+      console.log(`  … суточный лимит, переключаюсь на ${MODEL}`);
+      return transcribe(batch, attempt);
+    }
+    const wait = Number(body.match(/"retryDelay":\s*"(\d+)/)?.[1] ?? 30) + 2;
+    console.log(`  … лимит в минуту, жду ${wait} с`);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+    return transcribe(batch, attempt + 1);
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const json = await res.json();
   const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') ?? '[]';
-  return JSON.parse(text);
+  return single ? [text.trim()] : JSON.parse(text);
 }
 
 const bad = [];
 const rows = [];
-const SIZE = 12;
+const SIZE = Number(args.size ?? 1);
 for (let i = 0; i < files.length; i += SIZE) {
   const batch = files.slice(i, i + SIZE);
   let heard;
@@ -70,6 +100,7 @@ for (let i = 0; i < files.length; i += SIZE) {
     heard = await transcribe(batch);
   } catch (e) {
     console.log(`✗ пачка ${i / SIZE + 1}: ${e.message}`);
+    if (e.daily) break;
     continue;
   }
   batch.forEach((f, k) => {

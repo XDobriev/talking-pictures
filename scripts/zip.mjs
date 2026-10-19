@@ -3,6 +3,7 @@
 import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { zipSync } from 'fflate';
+import { PHRASES } from '../src/data/phrases.ts';
 
 const DIST = 'dist';
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
@@ -31,6 +32,11 @@ if (total > 100 * 1024 * 1024) problems.push(`размер ${(total / 1048576).t
 const html = readFileSync(join(DIST, 'index.html'), 'utf8');
 if (!html.includes('src="/sdk.js"')) problems.push('в index.html нет <script src="/sdk.js">');
 if (/https?:\/\/(?!sdk\.games\.s3)/.test(html.replace(/xmlns="[^"]+"/g, ''))) problems.push('в index.html есть внешние ссылки');
+
+// в релизе нет запасного синтеза речи (src/audio/voice.ts) — без файла фраза просто не прозвучит
+const voiced = new Set(readdirSync('src/assets/voice').map((f) => f.replace(/\.\w+$/, '')));
+const silent = Object.keys(PHRASES).filter((id) => !voiced.has(id));
+if (silent.length) problems.push(`не озвучено ${silent.length} фраз (npm run voice): ${silent.slice(0, 8).join(', ')}${silent.length > 8 ? '…' : ''}`);
 
 if (problems.length) {
   console.error('Архив не собран:\n- ' + problems.join('\n- '));
