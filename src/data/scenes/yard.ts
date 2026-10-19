@@ -49,6 +49,7 @@ const objects: SceneObject[] = [
 export const yard: SceneDef = {
   id: 'yard',
   title: 'Двор',
+  icon: 'ball',
   background: 'yard/bg',
   baked: true,
   objects,

@@ -49,6 +49,7 @@ const objects: SceneObject[] = [
 export const forest: SceneDef = {
   id: 'forest',
   title: 'Лес',
+  icon: 'squirrel',
   background: 'forest/bg',
   baked: true,
   objects,

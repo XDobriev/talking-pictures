@@ -77,8 +77,8 @@ export function AlbumScreen({ onHome }: { onHome(): void }) {
         ))}
       </svg>
 
-      <div className="absolute left-[40px] top-[40px] z-20">
-        <RoundButton label="домой" onPress={onHome} size={110} tone="paper">
+      <div className="absolute left-[40px] top-[36px] z-20">
+        <RoundButton label="домой" onPress={onHome} size={130} tone="paper">
           <HomeIcon />
         </RoundButton>
       </div>

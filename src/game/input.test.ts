@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { forest } from '../data/scenes/forest';
-import { RageDetector, hintStage, hitRect, pickObject } from './input';
+import { RageDetector, hintStage, hintThresholds, hitRect, pickObject } from './input';
 
 describe('RageDetector', () => {
   it('срабатывает на 5-м касании в пустоту за 2 секунды', () => {
@@ -19,6 +19,20 @@ describe('hintStage', () => {
     expect(hintStage(5000)).toBe(0);
     expect(hintStage(12000)).toBe(1);
     expect(hintStage(25000)).toBe(2);
+  });
+
+  it('принимает свои пороги: на цветовых уровнях первая подсказка раньше', () => {
+    const t = hintThresholds({ color: 'red' });
+    expect(t.wiggle).toBe(8000);
+    expect(hintStage(7900, t)).toBe(0);
+    expect(hintStage(8000, t)).toBe(1);
+    expect(hintStage(24000, t)).toBe(1);
+    expect(hintStage(25000, t)).toBe(2);
+  });
+
+  it('без цвета в задании — обычные 12 с', () => {
+    expect(hintThresholds({ kind: 'animal' }).wiggle).toBe(12000);
+    expect(hintStage(8000, hintThresholds({ kind: 'animal' }))).toBe(0);
   });
 });
 

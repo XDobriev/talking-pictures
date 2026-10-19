@@ -1,51 +1,51 @@
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { CloseIcon, ParentIcon } from './icons';
+import { useState } from 'react';
+import { CloseIcon } from './icons';
 
-const HOLD_MS = 3000;
+const WORDS = ['ноль', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+
+function shuffle<T>(a: T[]): T[] {
+  const r = [...a];
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+
+/** Три разные цифры 1–9. */
+function makeCode() {
+  return shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 3);
+}
 
 /**
- * Родительский контроль: удерживать кнопку 3 секунды.
- * Пример «2 + 3» шестилетка решит сам, а долгое удержание с инструкцией текстом — барьер для малыша.
+ * Родительский контроль: «нажмите цифры: семь, два, девять».
+ * Цифры названы словами — малыш не прочтёт, а взрослый справится за секунду.
+ * Удержание кнопки малыши проходили случайно (часто держат палец), а пример «2 + 3» шестилетка решит сам.
+ * Кнопки стоят в случайном порядке, чтобы код нельзя было запомнить «по месту».
  */
 export function ParentGate({ onPass, onCancel }: { onPass(): void; onCancel(): void }) {
-  const [progress, setProgress] = useState(0);
-  const start = useRef<number | null>(null);
-  const raf = useRef(0);
+  const [code, setCode] = useState(makeCode);
+  const [order, setOrder] = useState(() => shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+  const [entered, setEntered] = useState(0);
 
-  useEffect(() => () => cancelAnimationFrame(raf.current), []);
-
-  const loop = () => {
-    if (start.current == null) return;
-    const p = Math.min(1, (performance.now() - start.current) / HOLD_MS);
-    setProgress(p);
-    if (p >= 1) {
-      start.current = null;
-      onPass();
+  const press = (d: number) => {
+    if (d !== code[entered]) {
+      // Ошибка — новый код и новый порядок, без упрёков.
+      setEntered(0);
+      setCode(makeCode());
+      setOrder(shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]));
       return;
     }
-    raf.current = requestAnimationFrame(loop);
+    if (entered + 1 === code.length) return onPass();
+    setEntered(entered + 1);
   };
-  const down = (e: PointerEvent) => {
-    if (!e.isPrimary) return;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    start.current = performance.now();
-    raf.current = requestAnimationFrame(loop);
-  };
-  const up = () => {
-    start.current = null;
-    cancelAnimationFrame(raf.current);
-    setProgress(0);
-  };
-
-  const R = 118;
-  const C = 2 * Math.PI * R;
 
   return (
     <div className="absolute inset-0 z-[80] flex items-center justify-center" data-testid="parent-gate">
       <div className="absolute inset-0 bg-[#1f271c]/70" onPointerDown={onCancel} />
       <motion.div
-        className="paper relative flex w-[860px] flex-col items-center rounded-[56px] px-14 py-12 text-center"
+        className="paper relative flex w-[1640px] flex-col items-center rounded-[56px] px-14 py-12 text-center"
         style={{ boxShadow: '0 14px 0 0 var(--color-paper-edge), 0 40px 80px -20px rgba(0,0,0,0.6)' }}
         initial={{ scale: 0.92, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -54,7 +54,7 @@ export function ParentGate({ onPass, onCancel }: { onPass(): void; onCancel(): v
         <button
           type="button"
           aria-label="закрыть"
-          className="absolute right-8 top-8 h-20 w-20 rounded-full p-4 text-ink-soft"
+          className="absolute right-6 top-6 h-[120px] w-[120px] rounded-full bg-paper-deep p-[30px] text-ink"
           onPointerDown={(e) => {
             e.stopPropagation();
             onCancel();
@@ -62,39 +62,39 @@ export function ParentGate({ onPass, onCancel }: { onPass(): void; onCancel(): v
         >
           <CloseIcon />
         </button>
-        <h2 className="font-display text-[64px] leading-none text-ink">Для взрослых</h2>
-        <p className="mt-5 max-w-[620px] text-[34px] leading-snug text-ink-soft">
-          Нажмите и&nbsp;удерживайте замок 3&nbsp;секунды, чтобы открыть настройки.
+        <h2 className="font-display text-[72px] leading-none text-ink">Для взрослых</h2>
+        <p className="mt-6 text-[48px] leading-snug text-ink-soft">Чтобы открыть настройки, нажмите цифры:</p>
+        <p className="mt-2 text-[60px] font-extrabold leading-snug text-ink" data-testid="gate-code" data-digits={code.join('')}>
+          {code.map((d, i) => (
+            <span key={i} style={{ opacity: i < entered ? 0.35 : 1 }}>
+              {WORDS[d]}
+              {i < code.length - 1 ? ', ' : ''}
+            </span>
+          ))}
         </p>
-        <button
-          type="button"
-          aria-label="удерживать"
-          data-testid="hold"
-          className="relative mt-10 h-[260px] w-[260px] touch-none rounded-full"
-          onPointerDown={down}
-          onPointerUp={up}
-          onPointerCancel={up}
-          onPointerLeave={up}
-        >
-          <svg viewBox="0 0 260 260" className="absolute inset-0">
-            <circle cx={130} cy={130} r={R} fill="none" stroke="rgba(61,58,47,0.12)" strokeWidth={16} />
-            <circle
-              cx={130}
-              cy={130}
-              r={R}
-              fill="none"
-              stroke="var(--color-moss)"
-              strokeWidth={16}
-              strokeLinecap="round"
-              strokeDasharray={C}
-              strokeDashoffset={C * (1 - progress)}
-              transform="rotate(-90 130 130)"
-            />
-          </svg>
-          <span className="absolute inset-[44px] rounded-full bg-dusk p-9 text-paper" style={{ transform: `scale(${1 - progress * 0.08})` }}>
-            <ParentIcon />
-          </span>
-        </button>
+        <div className="mt-10 flex gap-[18px]">
+          {order.map((d) => (
+            <button
+              key={d}
+              type="button"
+              data-testid={`digit-${d}`}
+              onPointerDown={(e) => {
+                if (!e.isPrimary) return;
+                press(d);
+              }}
+              className="cut flex h-[150px] w-[150px] items-center justify-center rounded-[36px] bg-dusk font-display leading-none text-[#fffaf0]"
+              // .cut считает тень от размера шрифта кнопки, поэтому крупная цифра — во внутреннем span.
+              style={{ fontSize: 19, ['--cut-shadow' as string]: 'var(--color-dusk-deep)' }}
+            >
+              <span className="text-[88px]">{d}</span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-10 flex gap-6" aria-hidden>
+          {code.map((_, i) => (
+            <span key={i} className="h-[36px] w-[36px] rounded-full" style={{ background: i < entered ? 'var(--color-moss-deep)' : 'rgba(61,58,47,0.2)' }} />
+          ))}
+        </div>
       </motion.div>
     </div>
   );

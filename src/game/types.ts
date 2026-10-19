@@ -127,6 +127,8 @@ export interface LevelDef {
 export interface SceneDef {
   id: string;
   title: string;
+  /** Герой на вкладке сцены в меню — по нему сцену узнаёт ребёнок, который не читает. */
+  icon?: string;
   /** Ключ фона: компонент-заглушка или путь к webp. */
   background: string;
   /**

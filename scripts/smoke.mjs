@@ -138,15 +138,18 @@ try {
     await page.screenshot({ path: `${OUT}/08-menu.png` });
   });
 
-  await step('родительская зона открывается удержанием', async () => {
+  await step('родительская зона открывается цифрами, названными словами', async () => {
     await tapId(page, 'для взрослых');
     await page.getByTestId('parent-gate').waitFor();
     await page.screenshot({ path: `${OUT}/09-gate.png` });
-    const hold = await page.getByTestId('hold').boundingBox();
-    await page.mouse.move(hold.x + hold.width / 2, hold.y + hold.height / 2);
-    await page.mouse.down();
-    await page.waitForTimeout(3300);
-    await page.mouse.up();
+    // Неверная цифра сбрасывает код и не открывает меню.
+    const first = await page.getByTestId('gate-code').getAttribute('data-digits');
+    const wrong = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((d) => d !== Number(first[0]));
+    await tapId(page, `digit-${wrong}`);
+    await page.waitForTimeout(200);
+    if (await page.getByTestId('parent-menu').count()) throw new Error('меню открылось от неверной цифры');
+    const digits = await page.getByTestId('gate-code').getAttribute('data-digits');
+    for (const d of digits) await tapId(page, `digit-${d}`);
     await page.getByTestId('parent-menu').waitFor({ timeout: 3000 });
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${OUT}/10-parent.png` });

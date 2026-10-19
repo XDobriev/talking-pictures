@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { muteFor, say, stopVoice, unlockAudio, unmuteFor } from './audio';
 import { SCENES } from './data/scenes';
@@ -75,6 +75,9 @@ export function App() {
   };
 
   return (
+    // reducedMotion="user": при системной настройке «меньше движения» framer-motion отключает
+    // сдвиги и масштаб (полёт находки, пульс кнопок), оставляя плавное появление.
+    <MotionConfig reducedMotion="user">
     <Stage>
       <AnimatePresence mode="wait">
         <motion.div
@@ -118,5 +121,6 @@ export function App() {
       {ad && <AdOverlay mock={platform.name === 'mock'} />}
       <RotateOverlay />
     </Stage>
+    </MotionConfig>
   );
 }

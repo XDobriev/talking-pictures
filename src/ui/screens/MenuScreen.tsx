@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ObjectArt, SceneBackground } from '../../art';
+import { ObjectArt, SceneBackground, cropStyle, isBaked } from '../../art';
 import { playSfx } from '../../audio/sfx';
 import { SCENES } from '../../data/scenes';
 import { resolveTargets } from '../../game/query';
@@ -21,10 +21,27 @@ const PATH: { x: number; y: number }[] = [
   { x: 1480, y: 760 },
   { x: 1660, y: 560 },
   { x: 1480, y: 400 },
-  { x: 1690, y: 260 },
+  { x: 1660, y: 290 }, // ниже замка «для взрослых», чтобы подсветка не наезжала на него
 ];
 
 const COMING: { id: string; title: string }[] = [];
+
+/** Кружок с героем сцены — круглое «окошко» в её фон: квадратный кадр по диагонали героя, чтобы он целиком влез в круг. */
+function SceneHero({ scene, size }: { scene: SceneDef; size: number }) {
+  const hero = scene.objects.find((o) => o.id === scene.icon);
+  if (!hero) return null;
+  const { x, y, w, h } = hero.rect;
+  const side = Math.hypot((w / 100) * 1920, (h / 100) * 1080) * 0.95; // в пикселях фона 1920×1080
+  const square = { x, y, w: (side / 1920) * 100, h: (side / 1080) * 100 };
+  return (
+    <span
+      className="block shrink-0 overflow-hidden rounded-full border-[6px] border-[#fffaf0] bg-[#fffaf0]"
+      style={{ width: size, height: size, ...(isBaked(scene) ? cropStyle(scene.background, square) : {}) }}
+    >
+      {!isBaked(scene) && <ObjectArt scene={scene} obj={hero} />}
+    </span>
+  );
+}
 
 export function MenuScreen({
   scene,
@@ -98,14 +115,19 @@ export function MenuScreen({
         );
       })}
 
-      {/* Вкладки сцен: текущая — крупная бумажная, другие готовые — нажимаются, остальные пока «скоро» */}
-      <div className="absolute left-[40px] top-[40px] flex items-center gap-5">
-        <RoundButton label="альбом" onPress={onAlbum} size={120} tone="berry">
+      {/* Вкладки сцен: герой сцены + название (ребёнок узнаёт сцену по картинке). Текущая — крупнее и с охряной обводкой. */}
+      <div className="absolute left-[40px] top-[36px] flex items-center gap-5">
+        <RoundButton label="альбом" onPress={onAlbum} size={130} tone="berry">
           <AlbumIcon />
         </RoundButton>
         {SCENES.map((s) =>
           s.id === scene.id ? (
-            <div key={s.id} className="paper flex h-[96px] items-center rounded-full px-10 font-display text-[50px]" style={{ boxShadow: '0 8px 0 0 var(--color-paper-edge)' }}>
+            <div
+              key={s.id}
+              className="paper flex h-[140px] items-center gap-4 rounded-full pl-4 pr-10 font-display text-[54px]"
+              style={{ boxShadow: '0 8px 0 0 var(--color-paper-edge)', outline: '8px solid var(--color-ochre)', outlineOffset: 2 }}
+            >
+              <SceneHero scene={s} size={110} />
               {s.title}
             </div>
           ) : (
@@ -119,10 +141,11 @@ export function MenuScreen({
                 playSfx('whoosh');
                 onScene(s.id);
               }}
-              className="paper flex h-[84px] items-center rounded-full px-8 font-display text-[40px]"
-              style={{ boxShadow: '0 6px 0 0 var(--color-paper-edge)' }}
+              className="paper flex h-[130px] items-center gap-3 rounded-full pl-3 pr-8 font-display text-[46px]"
+              style={{ boxShadow: '0 8px 0 0 var(--color-paper-edge)' }}
               whileTap={{ scale: 0.94, y: 4 }}
             >
+              <SceneHero scene={s} size={104} />
               {s.title}
             </motion.button>
           ),
@@ -137,8 +160,8 @@ export function MenuScreen({
         ))}
       </div>
 
-      <div className="absolute right-[40px] top-[40px]">
-        <RoundButton label="для взрослых" onPress={onParent} size={110} tone="dusk">
+      <div className="absolute right-[40px] top-[36px]">
+        <RoundButton label="для взрослых" onPress={onParent} size={130} tone="dusk">
           <ParentIcon />
         </RoundButton>
       </div>

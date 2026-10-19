@@ -50,6 +50,7 @@ const objects: SceneObject[] = [
 export const farm: SceneDef = {
   id: 'farm',
   title: 'Ферма',
+  icon: 'cow',
   background: 'farm/bg',
   baked: true,
   objects,

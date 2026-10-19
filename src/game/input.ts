@@ -1,4 +1,4 @@
-import type { Rect, SceneObject } from './types';
+import type { Rect, SceneObject, TaskQuery } from './types';
 
 /** Беспорядочное тапанье: больше `limit` касаний в пустоту за `windowMs`. */
 export class RageDetector {
@@ -20,12 +20,26 @@ export class RageDetector {
 }
 
 export const HINT_WIGGLE_MS = 12000;
+/** Цветовые задания тяжелее для детей с нарушением цветовосприятия (красное на зелёном) — подсказываем раньше. */
+export const HINT_WIGGLE_COLOR_MS = 8000;
 export const HINT_PULSE_MS = 25000;
 
+export interface HintThresholds {
+  wiggle: number;
+  pulse: number;
+}
+
+const DEFAULT_HINTS: HintThresholds = { wiggle: HINT_WIGGLE_MS, pulse: HINT_PULSE_MS };
+
+/** Пороги подсказок для задания уровня. */
+export function hintThresholds(query: TaskQuery): HintThresholds {
+  return query.color ? { wiggle: HINT_WIGGLE_COLOR_MS, pulse: HINT_PULSE_MS } : DEFAULT_HINTS;
+}
+
 /** Ступень пассивной подсказки по времени бездействия. */
-export function hintStage(idleMs: number): 0 | 1 | 2 {
-  if (idleMs >= HINT_PULSE_MS) return 2;
-  if (idleMs >= HINT_WIGGLE_MS) return 1;
+export function hintStage(idleMs: number, t: HintThresholds = DEFAULT_HINTS): 0 | 1 | 2 {
+  if (idleMs >= t.pulse) return 2;
+  if (idleMs >= t.wiggle) return 1;
   return 0;
 }
 

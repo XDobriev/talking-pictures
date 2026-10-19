@@ -5,6 +5,9 @@ import { useStore } from '../game/store';
 import { DEFAULT_SAVE, type SaveData } from '../platform';
 import { CloseIcon } from './icons';
 
+// Размеры — в пикселях холста 1920×1080. На телефоне 844×390 холст сжимается в 0,36 раза,
+// поэтому мельче 40 px холста (≈ 14 CSS px) текст не делаем.
+
 type SettingKey = keyof SaveData['settings'];
 
 const TOGGLES: { key: SettingKey; title: string; hint: string }[] = [
@@ -25,12 +28,12 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange(v: boolean): vo
         if (!e.isPrimary) return;
         onChange(!on);
       }}
-      className="relative h-[64px] w-[116px] shrink-0 rounded-full transition-colors"
-      style={{ background: on ? 'var(--color-moss)' : 'rgba(61,58,47,0.2)' }}
+      className="relative h-[88px] w-[160px] shrink-0 rounded-full transition-colors"
+      style={{ background: on ? 'var(--color-moss-deep)' : 'rgba(61,58,47,0.3)' }}
     >
       <motion.span
-        className="absolute top-[7px] h-[50px] w-[50px] rounded-full bg-[#fffaf0] shadow"
-        animate={{ left: on ? 59 : 7 }}
+        className="absolute top-[9px] h-[70px] w-[70px] rounded-full bg-[#fffaf0] shadow"
+        animate={{ left: on ? 81 : 9 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       />
     </button>
@@ -47,14 +50,14 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
     <div className="absolute inset-0 z-[80] flex items-center justify-center" data-testid="parent-menu">
       <div className="absolute inset-0 bg-[#1f271c]/70" />
       <motion.div
-        className="paper relative flex h-[900px] w-[1500px] overflow-hidden rounded-[56px]"
+        className="paper relative flex h-[1010px] w-[1820px] overflow-hidden rounded-[56px]"
         style={{ boxShadow: '0 14px 0 0 var(--color-paper-edge), 0 40px 80px -20px rgba(0,0,0,0.6)' }}
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       >
-        <nav className="flex w-[380px] shrink-0 flex-col gap-3 bg-paper-deep/70 px-8 py-12">
-          <h2 className="mb-6 px-4 font-display text-[52px] leading-none">Для взрослых</h2>
+        <nav className="flex w-[460px] shrink-0 flex-col gap-3 bg-paper-deep/70 px-8 py-12">
+          <h2 className="mb-6 px-4 font-display text-[56px] leading-none">Для взрослых</h2>
           {(
             [
               ['talk', 'Поговорите'],
@@ -66,13 +69,13 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
               key={id}
               type="button"
               onPointerDown={() => setTab(id)}
-              className="rounded-[28px] px-6 py-5 text-left text-[34px] font-bold transition-colors"
+              className="rounded-[28px] px-6 py-6 text-left text-[48px] font-bold transition-colors"
               style={{ background: tab === id ? '#fffaf0' : 'transparent', color: tab === id ? 'var(--color-ink)' : 'var(--color-ink-soft)' }}
             >
               {title}
             </button>
           ))}
-          <div className="mt-auto px-4 text-[26px] leading-snug text-ink-soft">
+          <div className="mt-auto px-4 text-[40px] leading-snug text-ink-soft">
             Пройдено уровней: <b className="text-ink">{save.completed.length}</b> из {totalLevels}
             <br />
             Наклеек: <b className="text-ink">{save.stickers.length}</b>
@@ -84,25 +87,25 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
             type="button"
             aria-label="закрыть"
             data-testid="parent-close"
-            className="absolute right-8 top-8 h-20 w-20 rounded-full p-4 text-ink-soft"
+            className="absolute right-6 top-6 h-[120px] w-[120px] rounded-full bg-paper-deep p-[30px] text-ink"
             onPointerDown={onClose}
           >
             <CloseIcon />
           </button>
 
           {tab === 'talk' && (
-            <div className="max-w-[920px]">
-              <h3 className="font-display text-[48px]">Вопросы для совместной игры</h3>
-              <p className="mt-3 text-[30px] leading-snug text-ink-soft">
+            <div className="max-w-[1100px]">
+              <h3 className="font-display text-[60px] leading-tight">Вопросы для совместной игры</h3>
+              <p className="mt-4 text-[42px] leading-snug text-ink-soft">
                 Главная польза разглядывания — разговор со взрослым. Задайте ребёнку пару вопросов по картинке, дайте ответить своими словами и
                 похвалите за попытку.
               </p>
               {SCENES.map((s) => (
-                <div key={s.id} className="mt-8">
-                  <div className="text-[30px] font-extrabold uppercase tracking-wide text-moss">{s.title}</div>
+                <div key={s.id} className="mt-10">
+                  <div className="text-[42px] font-extrabold uppercase tracking-wide text-moss-deep">{s.title}</div>
                   <ul className="mt-3 flex flex-col gap-3">
                     {s.parentQuestions.map((q) => (
-                      <li key={q} className="rounded-[24px] bg-[#fffaf0] px-7 py-5 text-[32px] leading-snug">
+                      <li key={q} className="rounded-[24px] bg-[#fffaf0] px-8 py-6 text-[44px] leading-snug">
                         {q}
                       </li>
                     ))}
@@ -113,14 +116,14 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
           )}
 
           {tab === 'settings' && (
-            <div className="max-w-[920px]">
-              <h3 className="font-display text-[48px]">Настройки</h3>
+            <div className="max-w-[1100px]">
+              <h3 className="font-display text-[60px] leading-tight">Настройки</h3>
               <div className="mt-6 flex flex-col gap-4">
                 {TOGGLES.map((t) => (
                   <div key={t.key} className="flex items-center gap-8 rounded-[28px] bg-[#fffaf0] px-8 py-6">
                     <div className="flex-1">
-                      <div className="text-[34px] font-bold">{t.title}</div>
-                      <div className="text-[26px] text-ink-soft">{t.hint}</div>
+                      <div className="text-[46px] font-bold leading-tight">{t.title}</div>
+                      <div className="text-[40px] leading-snug text-ink-soft">{t.hint}</div>
                     </div>
                     <Toggle
                       label={t.title}
@@ -130,9 +133,9 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
                   </div>
                 ))}
               </div>
-              <div className="mt-10 rounded-[28px] border-4 border-dashed border-berry/30 px-8 py-6">
-                <div className="text-[30px] font-bold">Сбросить прогресс</div>
-                <div className="text-[26px] text-ink-soft">Наклейки и пройденные уровни будут удалены.</div>
+              <div className="mt-10 rounded-[28px] border-4 border-dashed border-berry/40 px-8 py-6">
+                <div className="text-[44px] font-bold">Сбросить прогресс</div>
+                <div className="text-[40px] leading-snug text-ink-soft">Наклейки и пройденные уровни будут удалены.</div>
                 <button
                   type="button"
                   onPointerDown={() => {
@@ -140,7 +143,7 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
                     update(() => ({ ...DEFAULT_SAVE, settings: save.settings, tutorialDone: true }));
                     setConfirmReset(false);
                   }}
-                  className="mt-4 rounded-full bg-berry px-8 py-4 text-[28px] font-bold text-paper"
+                  className="mt-5 rounded-full bg-berry px-10 py-5 text-[42px] font-bold text-paper"
                 >
                   {confirmReset ? 'Точно сбросить?' : 'Сбросить'}
                 </button>
@@ -149,12 +152,12 @@ export function ParentMenu({ onClose }: { onClose(): void }) {
           )}
 
           {tab === 'about' && (
-            <div className="max-w-[920px] text-[30px] leading-snug">
-              <h3 className="font-display text-[48px]">Об игре</h3>
+            <div className="max-w-[1100px] text-[42px] leading-snug">
+              <h3 className="font-display text-[60px] leading-tight">Об игре</h3>
               <p className="mt-4">
                 «Говорящие картинки» — книжка-разглядывалка, которая разговаривает с ребёнком. Задания идут по ступеням развития речи:
               </p>
-              <ol className="mt-4 list-decimal pl-10 text-ink-soft">
+              <ol className="mt-4 list-decimal pl-14 text-ink-soft">
                 <li>Кто это? — названия предметов и зверей</li>
                 <li>Кто так говорит? — звукоподражание и слуховое внимание</li>
                 <li>Кто что делает? — глаголы</li>

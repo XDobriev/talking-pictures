@@ -308,11 +308,34 @@
   animation: float 3.2s ease-in-out infinite;
 }
 
+/* «Меньше движения»: убираем всё необязательное. Подсказка-кольцо остаётся, но статичным и ярким. */
 @media (prefers-reduced-motion: reduce) {
   .breathe,
   .spin-slow,
   .float,
-  .flap {
+  .flap,
+  .zz,
+  .ripple,
+  .react-wiggle,
+  .react-hop,
+  .react-spin,
+  .react-shake,
+  .glow,
+  .jelly,
+  .heart-pop,
+  .found-badge,
+  .hint-pulse {
     animation: none;
+  }
+  .hint-ring {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .hint-pulse {
+    filter: drop-shadow(0 0 1.4em rgba(255, 243, 176, 0.95));
+  }
+  .cut {
+    transition: none;
   }
 }

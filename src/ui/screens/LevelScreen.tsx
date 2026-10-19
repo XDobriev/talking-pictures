@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Mood } from '../../art';
 import { playSfx, say, stopVoice } from '../../audio';
 import { PRAISE } from '../../data/phrases';
-import { RageDetector, hintStage } from '../../game/input';
+import { RageDetector, hintStage, hintThresholds } from '../../game/input';
 import { resolveTargets } from '../../game/query';
 import { markLevelDone, useStore } from '../../game/store';
 import { track } from '../../game/telemetry';
@@ -124,7 +124,7 @@ export function LevelScreen({
     const id = setInterval(() => {
       const t = performance.now();
       setNow(t);
-      const stage = hintStage(t - lastActivity.current);
+      const stage = hintStage(t - lastActivity.current, hintThresholds(level.query));
       setHint((prev) => {
         if (stage === prev) return prev;
         if (stage === 1) {
@@ -140,7 +140,7 @@ export function LevelScreen({
       });
     }, 500);
     return () => clearInterval(id);
-  }, [phase, sayPrompt, promptFor, seq, targets, level.id]);
+  }, [phase, sayPrompt, promptFor, seq, targets, level.id, level.query]);
 
   const activity = () => {
     lastActivity.current = performance.now();
