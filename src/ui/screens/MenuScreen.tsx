@@ -24,7 +24,7 @@ const PATH: { x: number; y: number }[] = [
   { x: 1690, y: 260 },
 ];
 
-const COMING = [{ id: 'yard', title: 'Двор' }];
+const COMING: { id: string; title: string }[] = [];
 
 export function MenuScreen({
   scene,
@@ -59,7 +59,7 @@ export function MenuScreen({
         const p = PATH[i];
         const done = save.completed.includes(lvl.id);
         const isNext = i === next;
-        const hero = resolveTargets(scene, lvl)[0];
+        const hero = scene.objects.find((o) => o.id === lvl.icon) ?? resolveTargets(scene, lvl)[0];
         const size = isNext ? 190 : 160;
         return (
           <motion.button

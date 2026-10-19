@@ -169,11 +169,27 @@ try {
     await page.screenshot({ path: `${OUT}/15-farm-win.png` });
   });
 
-  await step('ферма: «домой» возвращает в меню фермы', async () => {
+  await step('ферма: «домой» возвращает в меню фермы (далее — двор)', async () => {
     // «домой» в окне победы (верхняя кнопка под затемнением)
     const box = await page.getByTestId('win').getByTestId('домой').boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await page.getByTestId('сцена forest').waitFor({ timeout: 5000 });
+  });
+
+  await step('двор: уровень на глаголы проходится', async () => {
+    await tapId(page, 'сцена yard');
+    await page.getByTestId('сцена farm').waitFor({ timeout: 5000 });
+    await page.waitForTimeout(900);
+    await page.screenshot({ path: `${OUT}/16-yard-menu.png` });
+    await tapId(page, 'уровень 3');
+    await page.locator('[data-level="yard_verbs1"]').waitFor({ timeout: 8000 });
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: `${OUT}/17-yard-verbs.png` });
+    for (const id of ['girl_swing', 'boy_slide', 'girl_rope']) {
+      await tapObj(id);
+      await page.waitForTimeout(300);
+    }
+    await page.getByTestId('win').waitFor({ timeout: 15000 });
   });
 
   await step('телефон 6.1″ (844×390) — холст вписан', async () => {

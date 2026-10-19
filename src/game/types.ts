@@ -7,10 +7,10 @@ export interface Rect {
   h: number;
 }
 
-export type Kind = 'animal' | 'bird' | 'insect' | 'plant' | 'mushroom' | 'vegetable' | 'thing';
+export type Kind = 'animal' | 'bird' | 'insect' | 'plant' | 'mushroom' | 'vegetable' | 'person' | 'toy' | 'thing';
 export type Color = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'brown' | 'white' | 'grey' | 'black' | 'pink';
 export type Size = 'small' | 'medium' | 'big';
-export type Action = 'sleep' | 'eat' | 'jump' | 'sit' | 'fly' | 'swim' | 'hide' | 'look' | 'grow' | 'crawl' | 'sing';
+export type Action = 'sleep' | 'eat' | 'jump' | 'sit' | 'fly' | 'swim' | 'hide' | 'look' | 'grow' | 'crawl' | 'sing' | 'swing' | 'slide' | 'ride' | 'play';
 export type Place = 'on_tree' | 'under_tree' | 'in_grass' | 'in_water' | 'in_sky' | 'on_stump' | 'behind_bush' | 'on_path' | 'on_fence' | 'in_garden';
 export type Emotion = 'happy' | 'sad' | 'scared' | 'sleepy' | 'calm';
 
@@ -80,6 +80,9 @@ export type SfxName =
   | 'baa'
   | 'bleat'
   | 'peep'
+  | 'horn'
+  | 'bell'
+  | 'coo'
   | 'cluck'
   | 'neigh'
   | 'crow';
@@ -115,6 +118,8 @@ export interface LevelDef {
   prompt?: 'ask' | 'sound';
   /** Скрыть силуэты в панели (задания на слух — иначе ответ виден). */
   hideSilhouettes?: boolean;
+  /** Герой на кружке уровня в меню (по умолчанию — первая цель). */
+  icon?: string;
   /** Фраза после победы для разговора с родителем (необязательно). */
   outro?: string;
 }

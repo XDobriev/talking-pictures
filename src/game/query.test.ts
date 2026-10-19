@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SCENES } from '../data/scenes';
 import { farm } from '../data/scenes/farm';
 import { forest } from '../data/scenes/forest';
+import { yard } from '../data/scenes/yard';
 import { PHRASES } from '../data/phrases';
 import type { SceneDef } from './types';
 import { resolveTargets, validateScene } from './query';
@@ -52,6 +53,12 @@ describe.each(SCENES.map((s) => [s.title, s] as const))('сцена «%s»: об
       for (const t of resolveTargets(scene, lvl)) {
         expect(t.voice[lvl.prompt ?? 'ask'], `${lvl.id}/${t.id}`).toBeTruthy();
       }
+    }
+  });
+
+  it('иконка уровня в меню — одна из его целей', () => {
+    for (const lvl of scene.levels.filter((l) => l.icon)) {
+      expect(resolveTargets(scene, lvl).map((t) => t.id), lvl.id).toContain(lvl.icon);
     }
   });
 
@@ -128,5 +135,34 @@ describe('сцена «Ферма»', () => {
 
   it('«кому грустно» — щенок и цыплёнок', () => {
     expect(ids('farm_sad').sort()).toEqual(['chick', 'dog']);
+  });
+});
+
+describe('сцена «Двор»', () => {
+  const ids = idsIn(yard);
+
+  it('не меньше 6 уровней (план MVP)', () => {
+    expect(yard.levels.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('уровни на глаголы — дети в заданном порядке', () => {
+    expect(ids('yard_verbs1')).toEqual(['girl_swing', 'boy_slide', 'girl_rope']);
+    expect(ids('yard_verbs2')).toEqual(['boy_bike', 'boy_ball', 'kid_sand']);
+  });
+
+  it('«игрушки» — мячик, ведёрко, самокат, змей (шарик и машина — не игрушки)', () => {
+    expect(ids('yard_toys').sort()).toEqual(['ball', 'bucket', 'kite', 'scooter']);
+  });
+
+  it('«в небе» — змей, шарик, самолёт', () => {
+    expect(ids('yard_sky').sort()).toEqual(['balloon', 'kite', 'plane']);
+  });
+
+  it('«всё красное» — машина, мячик, шарик', () => {
+    expect(ids('yard_red').sort()).toEqual(['ball', 'balloon', 'car']);
+  });
+
+  it('«кому грустно» — девочка с шариком и мальчик с мороженым', () => {
+    expect(ids('yard_sad').sort()).toEqual(['boy_sad', 'girl_sad']);
   });
 });

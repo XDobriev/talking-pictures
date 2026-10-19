@@ -19,5 +19,7 @@
 | `squeak.mp3` | белочка, мышка | [Mouse screams](https://bigsoundbank.com/sound-0459.html) | CC0 1.0 |
 | `tweet.mp3` | синичка | [Robin #4](https://bigsoundbank.com/sound-1670.html) | CC0 1.0 |
 | `peep.mp3` | цыплёнок | [Chick that chirp](https://bigsoundbank.com/sound-0672.html) | CC0 1.0 |
+| `horn.mp3` | машина | [Recent Car Horn #2](https://bigsoundbank.com/sound-0258.html) | CC0 1.0 |
+| `bell.mp3` | велосипед | [Bell Bike #2](https://bigsoundbank.com/sound-0275.html) | CC0 1.0 |
 
 Звуки, которых нет в таблице, синтезируются в коде (`src/audio/sfx.ts`).

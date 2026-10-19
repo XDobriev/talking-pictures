@@ -28,6 +28,8 @@ const SOURCES = [
   { name: 'squeak', id: 459, max: 1.0, who: 'белочка, мышка' },
   { name: 'tweet', id: 1670, max: 1.4, who: 'синичка' },
   { name: 'peep', id: 672, max: 1.2, who: 'цыплёнок' },
+  { name: 'horn', id: 258, max: 1.2, who: 'машина' },
+  { name: 'bell', id: 275, max: 1.4, who: 'велосипед' },
 ];
 
 const force = process.argv.includes('--force');

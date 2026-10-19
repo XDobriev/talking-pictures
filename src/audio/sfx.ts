@@ -160,6 +160,14 @@ const SYNTH: Record<SfxName, () => void> = {
   },
   baa: () => warble(420, 8, 45, 0.6, 'sawtooth', 0.07),
   bleat: () => warble(520, 11, 60, 0.5, 'sawtooth', 0.07),
+  horn: () => {
+    tone('square', 420, 420, 0.16, 0.08);
+    tone('square', 420, 420, 0.22, 0.08, 0.22);
+  },
+  bell: () => {
+    [0, 0.16].forEach((d) => [2200, 3300, 4400].forEach((f) => tone('sine', f, f, 0.5, 0.06, d)));
+  },
+  coo: () => warble(380, 6, 30, 0.7, 'sine', 0.12),
   peep: () => {
     tone('sine', 3000, 3400, 0.07, 0.1);
     tone('sine', 3000, 3400, 0.07, 0.1, 0.15);
