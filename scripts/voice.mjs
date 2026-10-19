@@ -234,7 +234,9 @@ if (args.batch) {
         const clean = parts.map((part) => polish(part));
         const rates = clean.map((c, k) => c.length / RATE / phraseWeight(chunk[k][1].text));
         const med = [...rates].sort((a, b) => a - b)[Math.floor(rates.length / 2)];
-        const odd = rates.map((r, k) => (r < 0.05 || r > 0.3 || med > 0.18 ? chunk[k][0] : null)).filter(Boolean);
+        // медиана: <0,07 — модель тянула паузы между словами и разрезы прошли посреди фраз;
+        // >0,22 — читала лишнее. Неторопливое чтение (медиана ~0,19) расшифровка признала верным.
+        const odd = rates.map((r, k) => (r < 0.05 || r > 0.3 || med < 0.07 || med > 0.22 ? chunk[k][0] : null)).filter(Boolean);
         if (odd.length) {
           console.log(`✗ ${key}: неправдоподобная длительность у ${odd.join(', ')} — пачка отброшена (сырой звук: ${RAW}/${batchId}.pcm)`);
           failed.push(...chunk.map(([id]) => id));
