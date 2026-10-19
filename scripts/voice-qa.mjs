@@ -3,7 +3,7 @@
 // 2) отдаёт файлы пачками в Gemini (текстовая модель) на расшифровку и сравнивает с ожидаемой фразой.
 // Несовпадения → voice/review.txt; с --delete-bad плохие файлы удаляются, чтобы voice.mjs их переозвучил.
 //
-//   node scripts/voice-qa.mjs [--delete-bad] [--no-trim] [--model=gemini-2.5-flash]
+//   node scripts/voice-qa.mjs [--unverified] [--only=…] [--delete-bad] [--no-trim] [--model=…]
 import { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync, mkdirSync } from 'node:fs';
 import { MPEGDecoder } from 'mpg123-decoder';
 import { PHRASES } from '../src/data/phrases.ts';
@@ -22,11 +22,22 @@ const MODELS = args.model
   ? String(args.model).split(',')
   : ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
 let MODEL = MODELS.shift();
+// Реестр проверенных: id, прошедшие расшифровку. voice.mjs вычёркивает id, когда переписывает файл.
+// --unverified — проверить всё, чего в реестре нет (так не теряются файлы, чья проверка упала из-за сети).
+const VERIFIED = 'voice/verified.txt';
+const verified = new Set(existsSync(VERIFIED) ? readFileSync(VERIFIED, 'utf8').split(/\s+/).filter(Boolean) : []);
 // --only=voice/review.txt (или id через запятую) — проверить только эти; --size=1 — по одному файлу на запрос
 const only = args.only
   ? new Set((existsSync(args.only) ? readFileSync(args.only, 'utf8').split(/\s+/) : String(args.only).split(',')).filter(Boolean))
   : null;
-const files = readdirSync(DIR).filter((f) => f.endsWith('.mp3') && (!only || only.has(f.replace(/\.mp3$/, ''))));
+const files = readdirSync(DIR).filter((f) => {
+  const id = f.replace(/\.mp3$/, '');
+  return f.endsWith('.mp3') && (!only || only.has(id)) && (!args.unverified || !verified.has(id));
+});
+if (!files.length) {
+  console.log('Нечего проверять: все файлы в реестре проверенных.');
+  process.exit(0);
+}
 
 // ---------- 1. тишина ----------
 const decoder = new MPEGDecoder();
@@ -123,4 +134,10 @@ writeFileSync(
 );
 writeFileSync('voice/review.txt', bad.join('\n') + (bad.length ? '\n' : ''));
 if (args['delete-bad']) for (const id of bad) unlinkSync(`${DIR}/${id}.mp3`);
-console.log(`\nИтог: ок ${rows.length - bad.length}, не совпало ${bad.length}${args['delete-bad'] && bad.length ? ' (удалены — переозвучит voice.mjs)' : ''}. Отчёт: voice/qa.tsv`);
+for (const r of rows) (r.ok ? verified.add(r.id) : verified.delete(r.id));
+writeFileSync(VERIFIED, [...verified].sort().join('\n') + '\n');
+const unchecked = files.length - rows.length;
+console.log(
+  `\nИтог: ок ${rows.length - bad.length}, не совпало ${bad.length}${args['delete-bad'] && bad.length ? ' (удалены — переозвучит voice.mjs)' : ''}` +
+    `${unchecked ? `, не проверено ${unchecked} (сеть/лимит — проверятся при следующем --unverified)` : ''}. Отчёт: voice/qa.tsv`,
+);

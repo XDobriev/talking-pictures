@@ -1,6 +1,6 @@
 // Упаковка dist/ в архив для Консоли Яндекс Игр с проверкой требований:
 // п. 1.21 — не больше 100 МБ в распакованном виде; п. 1.22 — index.html в корне, имена без пробелов и кириллицы.
-import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { zipSync } from 'fflate';
 import { PHRASES } from '../src/data/phrases.ts';
@@ -37,6 +37,10 @@ if (/https?:\/\/(?!sdk\.games\.s3)/.test(html.replace(/xmlns="[^"]+"/g, ''))) pr
 const voiced = new Set(readdirSync('src/assets/voice').map((f) => f.replace(/\.\w+$/, '')));
 const silent = Object.keys(PHRASES).filter((id) => !voiced.has(id));
 if (silent.length) problems.push(`не озвучено ${silent.length} фраз (npm run voice): ${silent.slice(0, 8).join(', ')}${silent.length > 8 ? '…' : ''}`);
+// каждый файл голоса должен пройти проверку расшифровкой (реестр ведёт scripts/voice-qa.mjs)
+const verified = new Set(existsSync('voice/verified.txt') ? readFileSync('voice/verified.txt', 'utf8').split(/\s+/).filter(Boolean) : []);
+const unverified = [...voiced].filter((id) => !verified.has(id));
+if (unverified.length) problems.push(`не проверено расшифровкой ${unverified.length} файлов (npm run voice:qa -- --unverified --no-trim --delete-bad): ${unverified.slice(0, 8).join(', ')}`);
 
 if (problems.length) {
   console.error('Архив не собран:\n- ' + problems.join('\n- '));

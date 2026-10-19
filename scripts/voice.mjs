@@ -34,6 +34,14 @@ const RATE = 24000;
 const RAW = 'voice/raw';
 mkdirSync(RAW, { recursive: true });
 const keepRaw = (id, pcm) => writeFileSync(`${RAW}/${id}.pcm`, Buffer.from(pcm.buffer, pcm.byteOffset, pcm.byteLength));
+// Новый файл фразы ещё не проверен: вычёркиваем id из реестра voice/verified.txt (его ведёт voice-qa.mjs).
+const VERIFIED = 'voice/verified.txt';
+function writeVoice(id, pcm) {
+  writeFileSync(`${OUT}/${id}.mp3`, toMp3(pcm));
+  if (!existsSync(VERIFIED)) return;
+  const list = readFileSync(VERIFIED, 'utf8').split(/\s+/).filter((x) => x && x !== id);
+  writeFileSync(VERIFIED, list.join('\n') + '\n');
+}
 
 // Подача по настроению фразы. Ударения передаём знаком ударения над гласной (из разметки «+»).
 const STYLE = {
@@ -183,7 +191,7 @@ if (args.recut) {
     if (!parts) continue;
     parts.forEach((part, k) => {
       if (only && !only.includes(ids[k])) return;
-      writeFileSync(`${OUT}/${ids[k]}.mp3`, toMp3(polish(part)));
+      writeVoice(ids[k], polish(part));
       console.log(`✓ ${ids[k]}  ${(part.length / RATE).toFixed(1)} с`);
     });
   }
@@ -245,7 +253,7 @@ if (args.batch) {
         }
         clean.forEach((c, k) => {
           const [id, p] = chunk[k];
-          writeFileSync(`${OUT}/${id}.mp3`, toMp3(c));
+          writeVoice(id, c);
           made++;
           review.push(id);
           console.log(`✓ ${id}  «${p.text}»  ${(c.length / RATE).toFixed(1)} с  [${v}]`);
@@ -275,7 +283,7 @@ for (const [id, p] of todo) {
   try {
     const pcm = await withRetry(() => tts(promptFor(id, p), voiceFor(id), model), id);
     keepRaw(id, pcm);
-    writeFileSync(file, toMp3(polish(pcm)));
+    writeVoice(id, polish(pcm));
     made++;
     console.log(`✓ ${id}  «${p.text}»`);
   } catch (e) {
