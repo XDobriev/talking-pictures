@@ -21,7 +21,11 @@ function run(args) {
   return (r.stdout ?? '').trim().split('\n').at(-1) ?? '';
 }
 
-const voiced = run(['scripts/voice.mjs', '--batch=7', '--model=gemini-2.5-flash-preview-tts']);
+let voiced = run(['scripts/voice.mjs', '--batch=7', '--model=gemini-2.5-flash-preview-tts']);
+// Запасные модели (своя квота у каждой) — только если пользователь одобрил их тембр на слух:
+// по одной на строку в voice/extra-models.txt. Читают в режиме --plain (без инструкции).
+const extra = existsSync('voice/extra-models.txt') ? readFileSync('voice/extra-models.txt', 'utf8').split(/\s+/).filter(Boolean) : [];
+for (const model of extra) voiced += ` | ${model}: ${run(['scripts/voice.mjs', '--batch=7', '--plain', `--model=${model}`])}`;
 const checked = run(['scripts/voice-qa.mjs', '--unverified', '--no-trim', '--delete-bad']);
 
 const phrases = readFileSync('src/data/phrases.ts', 'utf8').match(/^\s+\w+: \{ text:/gm)?.length ?? 0;
