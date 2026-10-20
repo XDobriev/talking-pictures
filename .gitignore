@@ -16,3 +16,4 @@ dist-*
 # видео: рабочая папка и пробные записи до полной озвучки
 promo/.video-work
 promo/gameplay.mp4
+voice/listen.html

@@ -17,6 +17,7 @@
     "e2e": "node scripts/smoke.mjs",
     "voice": "node scripts/voice.mjs --batch=7 --model=gemini-2.5-flash-preview-tts",
     "voice:qa": "node scripts/voice-qa.mjs",
+    "voice:listen": "node scripts/voice-listen.mjs",
     "sfx": "node scripts/sfx.mjs",
     "promo": "node scripts/promo-texts.mjs && npm run build && node scripts/promo.mjs",
     "voice:csv": "node scripts/voice.mjs --csv",
