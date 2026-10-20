@@ -58,7 +58,24 @@ decoder.free();
 console.log(`Тишина подрезана: ${files.length} файлов`);
 
 // ---------- 2. расшифровка ----------
-async function transcribe(batch, attempt = 0) {
+// Перегрузка (5xx) и тайм-аут — не лимит: подождать и повторить, после двух неудач — другая модель
+// (перегруженная — в конец очереди, она ещё пригодится). Не больше 8 попыток на запрос.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function busy(batch, attempt, tries, why) {
+  if (tries >= 7) throw new Error(`${why}: модели перегружены, попробую при следующем --unverified`);
+  if (tries % 3 === 2 && MODELS.length) {
+    MODELS.push(MODEL);
+    MODEL = MODELS.shift();
+    console.log(`  … ${why}, переключаюсь на ${MODEL}`);
+  } else {
+    const wait = 10 * (tries + 1);
+    console.log(`  … ${why}, повтор через ${wait} с`);
+    await sleep(wait * 1000);
+  }
+  return transcribe(batch, attempt, tries + 1);
+}
+
+async function transcribe(batch, attempt = 0, tries = 0) {
   // Пачкой модель путает порядок ответов, поэтому надёжен только режим по одному (--size=1): там JSON не нужен
   const single = batch.length === 1;
   const parts = [
@@ -70,16 +87,22 @@ async function transcribe(batch, attempt = 0) {
     },
   ];
   for (const f of batch) parts.push({ inlineData: { mimeType: 'audio/mp3', data: readFileSync(`${DIR}/${f}`).toString('base64') } });
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-    signal: AbortSignal.timeout(90000),
-    body: JSON.stringify({ contents: [{ parts }], generationConfig: single ? { temperature: 0 } : { responseMimeType: 'application/json', temperature: 0 } }),
-  });
+  let res;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+      signal: AbortSignal.timeout(90000),
+      body: JSON.stringify({ contents: [{ parts }], generationConfig: single ? { temperature: 0 } : { responseMimeType: 'application/json', temperature: 0 } }),
+    });
+  } catch (e) {
+    return busy(batch, attempt, tries, e.name === 'TimeoutError' ? 'тайм-аут' : `сеть (${e.message})`);
+  }
+  if (res.status >= 500) return busy(batch, attempt, tries, `HTTP ${res.status}`);
   if (res.status === 404 && MODELS.length) {
     MODEL = MODELS.shift();
     console.log(`  … модель недоступна, переключаюсь на ${MODEL}`);
-    return transcribe(batch, attempt);
+    return transcribe(batch, attempt, tries);
   }
   if (res.status === 429 && attempt < 4) {
     // поминутный лимит — ждём, сколько просит сервер; суточный — ждать бессмысленно
@@ -88,12 +111,12 @@ async function transcribe(batch, attempt = 0) {
       if (!MODELS.length) throw Object.assign(new Error('суточный лимит исчерпан у всех моделей'), { daily: true });
       MODEL = MODELS.shift();
       console.log(`  … суточный лимит, переключаюсь на ${MODEL}`);
-      return transcribe(batch, attempt);
+      return transcribe(batch, attempt, tries);
     }
     const wait = Number(body.match(/"retryDelay":\s*"(\d+)/)?.[1] ?? 30) + 2;
     console.log(`  … лимит в минуту, жду ${wait} с`);
     await new Promise((r) => setTimeout(r, wait * 1000));
-    return transcribe(batch, attempt + 1);
+    return transcribe(batch, attempt + 1, tries);
   }
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const json = await res.json();
@@ -124,7 +147,7 @@ for (let i = 0; i < files.length; i += SIZE) {
     if (!ok) bad.push(id);
     console.log(`${ok ? '✓' : '✗'} ${id.padEnd(18)} ${(sim * 100).toFixed(0).padStart(3)}%  ${durations[f].toFixed(1)} с  «${got}»`);
   });
-  await new Promise((r) => setTimeout(r, 1500));
+  await sleep(1500);
 }
 
 mkdirSync('voice', { recursive: true });

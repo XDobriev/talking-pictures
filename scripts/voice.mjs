@@ -70,7 +70,7 @@ async function tts(text, voice, model = MODEL) {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    signal: AbortSignal.timeout(120000),
+    signal: AbortSignal.timeout(180000), // пачка из 7 фраз иногда генерируется дольше 2 минут
     body: JSON.stringify({
       contents: [{ parts: [{ text }] }],
       generationConfig: {
@@ -228,8 +228,11 @@ if (args.batch) {
   const review = [];
   outer: for (const [key, items] of groups) {
     const [v, mood] = key.split('|');
-    for (let i = 0; i < items.length; i += size) {
-      const chunk = items.slice(i, i + size);
+    // «С интересом» (вопросы, звуки, эхо по слогам) модель читает с длинными паузами между словами,
+    // и на 7 фразах разрезы съезжают: 20.10 из 6 таких пачек 4 ушли в брак. По 4 фразы — надёжнее.
+    const step = mood === 'curious' ? Math.min(size, 4) : size;
+    for (let i = 0; i < items.length; i += step) {
+      const chunk = items.slice(i, i + step);
       try {
         const pcm = await withRetry(() => tts(batchPrompt(chunk, mood), v, model), `${key} ×${chunk.length}`);
         const batchId = `batch-${Date.now()}`;
