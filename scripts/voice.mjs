@@ -4,6 +4,7 @@
 //   node scripts/voice.mjs --voice=Sulafat   — озвучить всё выбранным голосом (готовые файлы пропускаются)
 //   node scripts/voice.mjs --only=owl_name,owl_fact --force   — переозвучить отдельные фразы
 //   node scripts/voice.mjs --batch=7 --plain --model=gemini-3.8-flash-lite-tts — другая модель (своя квота), только фразы
+//   node scripts/voice.mjs --batch=4 --force --only=… --model=… --out=voice-compare --prefix=3-3.1-  — образцы для сравнения
 //   node scripts/voice.mjs --recut [--only=…]  — перерезать сохранённые пачки (voice/raw/batch-*) без запросов
 //   node scripts/voice.mjs --csv            — выгрузить таблицу фраз в voice/phrases.csv (для SpeechKit и проверки)
 //
@@ -29,7 +30,10 @@ if (existsSync('.env')) {
 
 const MODEL = process.env.GEMINI_TTS_MODEL ?? 'gemini-3.1-flash-tts-preview';
 const FALLBACK_MODEL = 'gemini-2.5-flash-preview-tts';
-const OUT = 'src/assets/voice';
+// --out=voice-compare --prefix=3-3.1- — образцы для прослушивания: в игру и реестр проверенных не попадают
+const OUT = String(args.out ?? 'src/assets/voice');
+const PREFIX = String(args.prefix ?? '');
+const SAMPLE = !!args.out;
 const RATE = 24000;
 // сырой PCM каждой фразы — в voice/raw (не в git), чтобы перечищать без повторной генерации
 const RAW = 'voice/raw';
@@ -38,8 +42,8 @@ const keepRaw = (id, pcm) => writeFileSync(`${RAW}/${id}.pcm`, Buffer.from(pcm.b
 // Новый файл фразы ещё не проверен: вычёркиваем id из реестра voice/verified.txt (его ведёт voice-qa.mjs).
 const VERIFIED = 'voice/verified.txt';
 function writeVoice(id, pcm) {
-  writeFileSync(`${OUT}/${id}.mp3`, toMp3(pcm));
-  if (!existsSync(VERIFIED)) return;
+  writeFileSync(`${OUT}/${PREFIX}${id}.mp3`, toMp3(pcm));
+  if (SAMPLE || !existsSync(VERIFIED)) return;
   const list = readFileSync(VERIFIED, 'utf8').split(/\s+/).filter((x) => x && x !== id);
   writeFileSync(VERIFIED, list.join('\n') + '\n');
 }
@@ -174,7 +178,15 @@ const rank = (id) => {
   return i === -1 ? PRIORITY.length : i;
 };
 const ordered = Object.entries(PHRASES).sort(([a], [b]) => rank(a) - rank(b));
-const todo = ordered.filter(([id]) => (!only || only.includes(id)) && (args.force || !existsSync(`${OUT}/${id}.mp3`)));
+// --skip-echo: без «Скажи: бе-лоч-ка!». Модели 3.8 читают слоги слитно (20.10: паузы 0–0,3 с против 0,6–1 с у основной),
+// поэтому эхо остаётся основной модели, а запасным — остальные фразы.
+const todo = ordered.filter(
+  ([id]) =>
+    (!only || only.includes(id)) &&
+    !(args['skip-echo'] && /_echo$/.test(id)) &&
+    !(args['echo-only'] && !/_echo$/.test(id)) &&
+    (args.force || !existsSync(`${OUT}/${id}.mp3`)),
+);
 skipped = ordered.length - todo.length;
 
 // ---------- пакетный режим: много фраз за один запрос ----------
@@ -278,10 +290,10 @@ if (args.batch) {
     }
   }
   // пачечные файлы обязательно проверить расшифровкой: нарезка может съехать при правдоподобных длительностях
-  if (review.length) writeFileSync('voice/new.txt', review.join('\n') + '\n');
+  if (review.length && !SAMPLE) writeFileSync('voice/new.txt', review.join('\n') + '\n');
   console.log(
     `\nГотово: новых ${made}, уже были ${skipped}, не вышло ${failed.length}.` +
-      (review.length ? `\nПроверьте новые (${review.length}): npm run voice:qa -- --no-trim --only=voice/new.txt --delete-bad` : ''),
+      (review.length && !SAMPLE ? `\nПроверьте новые (${review.length}): npm run voice:qa -- --no-trim --only=voice/new.txt --delete-bad` : ''),
   );
   process.exit(0);
 }

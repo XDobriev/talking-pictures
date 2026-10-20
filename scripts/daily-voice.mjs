@@ -21,14 +21,17 @@ function run(args) {
   return (r.stdout ?? '').trim().split('\n').at(-1) ?? '';
 }
 
-let voiced = run(['scripts/voice.mjs', '--batch=7', '--model=gemini-2.5-flash-preview-tts']);
+const extra = existsSync('voice/extra-models.txt') ? readFileSync('voice/extra-models.txt', 'utf8').split(/\s+/).filter(Boolean) : [];
+const MAIN = ['scripts/voice.mjs', '--batch=7', '--model=gemini-2.5-flash-preview-tts'];
+// С запасными моделями основная сначала тратит лимит на эхо (их запасные 3.8 не берут), потом — на остальное.
+let voiced = extra.length ? `эхо: ${run([...MAIN, '--echo-only'])} | ${run(MAIN)}` : run(MAIN);
 // Запасные модели (своя квота у каждой) — только если пользователь одобрил их тембр на слух:
 // по одной на строку в voice/extra-models.txt.
-// 3.8 зачитывает инструкцию о подаче вслух, а systemInstruction не принимает — им только фразы (--plain).
+// 3.8 зачитывает инструкцию о подаче вслух, а systemInstruction не принимает — им только фразы (--plain),
+// и без эхо: слоги «ве-дёр-ко» они читают слитно (20.10). Эхо остаётся основной модели.
 // 3.1 инструкцию в тексте понимает и вслух не читает (проверено расшифровкой 19.10) — ей обычный режим.
-const extra = existsSync('voice/extra-models.txt') ? readFileSync('voice/extra-models.txt', 'utf8').split(/\s+/).filter(Boolean) : [];
 for (const model of extra) {
-  const plain = /^gemini-3\.8-/.test(model) ? ['--plain'] : [];
+  const plain = /^gemini-3\.8-/.test(model) ? ['--plain', '--skip-echo'] : [];
   voiced += ` | ${model}: ${run(['scripts/voice.mjs', '--batch=7', ...plain, `--model=${model}`])}`;
 }
 const checked = run(['scripts/voice-qa.mjs', '--unverified', '--no-trim', '--delete-bad']);
