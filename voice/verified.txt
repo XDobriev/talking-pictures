@@ -68,7 +68,6 @@ mouse_ask
 mouse_echo
 next
 owl_ask
-owl_echo
 owl_fact
 owl_name
 owl_sound
@@ -105,10 +104,8 @@ task_sleep
 task_sound_intro
 task_yellow
 tit_ask
-tit_echo
 tit_fact
 tit_name
-tit_sound
 tomato_echo
 tractor_echo
 tutorial_tap
