@@ -17,3 +17,6 @@ dist-*
 promo/.video-work
 promo/gameplay.mp4
 voice/listen.html
+voice/level.tsv
+voice/qa.tsv
+voice/new.txt

@@ -35,10 +35,12 @@ for (const model of extra) {
   voiced += ` | ${model}: ${run(['scripts/voice.mjs', '--batch=7', ...plain, `--model=${model}`])}`;
 }
 const checked = run(['scripts/voice-qa.mjs', '--unverified', '--no-trim', '--delete-bad']);
+// Общая громкость (−14 LUFS), выравнивание внутри фразы и темп — как у уже выровненных (см. voice-level.mjs).
+const leveled = run(['scripts/voice-level.mjs', '--apply']);
 
 const phrases = readFileSync('src/data/phrases.ts', 'utf8').match(/^\s+\w+: \{ text:/gm)?.length ?? 0;
 const files = readdirSync('src/assets/voice').filter((f) => f.endsWith('.mp3')).length;
 const verified = existsSync('voice/verified.txt') ? readFileSync('voice/verified.txt', 'utf8').split(/\s+/).filter(Boolean).length : 0;
-const summary = `${day}: озвучено ${files} из ${phrases}, проверено ${verified}. Озвучка: ${voiced} | Проверка: ${checked}`;
+const summary = `${day}: озвучено ${files} из ${phrases}, проверено ${verified}. Озвучка: ${voiced} | Проверка: ${checked} | Выравнивание: ${leveled}`;
 say(`\n${summary}`);
 writeFileSync('voice/logs/last.txt', summary + '\n');
