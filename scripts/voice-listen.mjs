@@ -33,8 +33,28 @@ const items = Object.entries(PHRASES)
     group: groupOf(id),
     size: statSync(`${DIR}/${id}.mp3`).size,
     verified: verified.has(id),
+    src: `../${DIR}/${id}.mp3`,
   }));
 const groups = [...new Set(items.map((i) => i.group))].map((g) => ({ g, title: title(g), items: items.filter((i) => i.group === g) }));
+
+// Записи животных: в уровнях «на слух» по ним ребёнок угадывает героя — главное, чтобы животное узнавалось.
+// Кто есть кто — из таблицы src/assets/sfx/LICENSES.md (её пишет scripts/sfx.mjs). В heard.txt — как «sfx:<имя>».
+const SFX = 'src/assets/sfx';
+const sfxItems = [...readFileSync(`${SFX}/LICENSES.md`, 'utf8').matchAll(/^\| `(\w+)\.mp3` \| ([^|]+) \|/gm)]
+  .map(([, name, who]) => ({ id: `sfx:${name}`, name, who: who.trim() }))
+  .filter((s) => existsSync(`${SFX}/${s.name}.mp3`) && (!onlyNew || !heard.has(s.id)))
+  .map((s) => ({
+    id: s.id,
+    text: `Звук: ${s.who}`,
+    stressed: '',
+    group: 'sfx',
+    size: statSync(`${SFX}/${s.name}.mp3`).size,
+    verified: true,
+    src: `../${SFX}/${s.name}.mp3`,
+    reasons: ['не узнаётся', 'шум', 'тихо', 'громко', 'обрезано'],
+  }));
+if (sfxItems.length) groups.unshift({ g: 'sfx', title: 'Звуки животных — узнаётся ли, кто это?', items: sfxItems });
+items.push(...sfxItems);
 
 const html = `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -93,7 +113,7 @@ for (const g of GROUPS) {
     r.querySelector('.text').textContent = it.text;
     r.querySelector('.meta').textContent = it.id + (it.stressed ? ' · ударения: ' + it.stressed : '') + (it.verified ? '' : ' · не проверено расшифровкой');
     const why = r.querySelector('.why');
-    for (const w of REASONS) { const b = document.createElement('button'); b.textContent = w; b.dataset.reason = w; why.append(b); }
+    for (const w of it.reasons || REASONS) { const b = document.createElement('button'); b.textContent = w; b.dataset.reason = w; why.append(b); }
     const inp = document.createElement('input'); inp.placeholder = 'что не так (необязательно)'; why.append(inp);
     list.append(r);
     it.el = r;
@@ -119,7 +139,7 @@ function select(n, play) {
   all[cur].el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   if (play) playIt(all[cur]);
 }
-function playIt(it) { audio.src = '../src/assets/voice/' + it.id + '.mp3?' + it.size; audio.currentTime = 0; audio.play(); }
+function playIt(it) { audio.src = it.src + '?' + it.size; audio.currentTime = 0; audio.play(); }
 function setV(it, v) {
   const m = marks[mk(it)] || {}; m.v = v; marks[mk(it)] = m; save(); render(it); stats();
 }

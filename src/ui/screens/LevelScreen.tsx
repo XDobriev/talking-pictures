@@ -5,6 +5,7 @@ import { playSfx, say, stopVoice } from '../../audio';
 import { PRAISE } from '../../data/phrases';
 import { RageDetector, hintStage, hintThresholds } from '../../game/input';
 import { resolveTargets } from '../../game/query';
+import { riddleSteps } from '../../game/riddle';
 import { markLevelDone, useStore } from '../../game/store';
 import { track } from '../../game/telemetry';
 import type { SceneDef, SceneObject, SfxName } from '../../game/types';
@@ -93,14 +94,37 @@ export function LevelScreen({
     [seq, promptKey, level.task],
   );
 
-  const sayPrompt = useCallback(() => {
-    const t = seq ? targets[currentRef.current] : undefined;
-    return say([promptFor(t)]);
-  }, [seq, targets, promptFor]);
+  // Уровень «на слух»: загадка — настоящий звук, «Кто говорит: ква-ква?» голосом — только в подсказке (см. riddleSteps).
+  const soundLevel = level.prompt === 'sound';
+  const riddleKey = useRef(0);
+  /** Проиграть загадку; новая загадка или находка отменяет недоигранную. */
+  const playRiddle = useCallback(async (t: SceneObject, withVoice: boolean) => {
+    const key = ++riddleKey.current;
+    stopVoice();
+    for (const step of riddleSteps(t, withVoice)) {
+      if (key !== riddleKey.current) return false;
+      if ('sfx' in step) await playSfx(step.sfx);
+      else if (!(await say([step.say]))) return false;
+    }
+    return key === riddleKey.current;
+  }, []);
+
+  /** Повторить задание; withVoice — с подсказкой голосом (бездействие, касание слота, светлячок). */
+  const sayPrompt = useCallback(
+    (withVoice = false) => {
+      const t = seq ? targets[currentRef.current] : undefined;
+      if (soundLevel && t) return playRiddle(t, withVoice);
+      return say([promptFor(t)]);
+    },
+    [seq, targets, promptFor, soundLevel, playRiddle],
+  );
 
   const flushPrompt = useCallback(() => {
     if (!promptPending.current) return;
     promptPending.current = false;
+    // Новое задание — отсчёт до подсказки заново. Иначе 12 с шли от касания, рассказ о находке их съедал,
+    // и подсказка к новой загадке приходила через 3–4 с после неё.
+    lastActivity.current = performance.now();
     void sayPrompt();
   }, [sayPrompt]);
 
@@ -108,9 +132,13 @@ export function LevelScreen({
   useEffect(() => {
     platform.gameplayStart();
     track('level_start', { level: level.id });
-    const first = promptFor(targets[0]);
-    const intro = seq && level.task !== first ? [level.task, first] : [first];
-    void say(intro);
+    if (soundLevel) {
+      // «Слушай внимательно! Кто так говорит?» → кваканье
+      void say([level.task]).then((ok) => ok && playRiddle(targets[0], false));
+    } else {
+      const first = promptFor(targets[0]);
+      void say(seq && level.task !== first ? [level.task, first] : [first]);
+    }
     return () => {
       stopVoice();
       platform.gameplayStop();
@@ -129,21 +157,23 @@ export function LevelScreen({
         if (stage === prev) return prev;
         if (stage === 1) {
           setWiggleKey((k) => k + 1);
-          void sayPrompt();
+          void sayPrompt(true);
         }
         if (stage === 2) {
           setWiggleKey((k) => k + 1);
-          void say(['hint_look', promptFor(seq ? targets[currentRef.current] : undefined)]);
+          if (soundLevel) void say(['hint_look']).then((ok) => ok && sayPrompt(true));
+          else void say(['hint_look', promptFor(seq ? targets[currentRef.current] : undefined)]);
           track('hint_passive', { level: level.id });
         }
         return stage;
       });
     }, 500);
     return () => clearInterval(id);
-  }, [phase, sayPrompt, promptFor, seq, targets, level.id, level.query]);
+  }, [phase, sayPrompt, promptFor, seq, targets, level.id, level.query, soundLevel]);
 
   const activity = () => {
     lastActivity.current = performance.now();
+    riddleKey.current++; // любое касание отменяет недоигранную загадку: голос не вступит поверх нового звука
     if (hint) setHint(0);
   };
 
@@ -238,7 +268,7 @@ export function LevelScreen({
   const onSlot = (t: SceneObject) => {
     activity();
     if (found.has(t.id)) return void say([t.voice.name, ...(t.voice.fact ? [t.voice.fact] : [])]);
-    if (seq) return void sayPrompt();
+    if (seq) return void sayPrompt(true);
     void say([t.voice.ask ?? level.task]);
   };
 
@@ -253,7 +283,8 @@ export function LevelScreen({
     setNow(t);
     playSfx('sparkle');
     track('hint_used', { level: level.id, target: target.id });
-    void say(['hint_firefly', promptFor(seq ? target : undefined)]);
+    if (soundLevel) void say(['hint_firefly']).then((ok) => ok && playRiddle(target, true));
+    else void say(['hint_firefly', promptFor(seq ? target : undefined)]);
     setTimeout(() => setFirefly((f) => (f?.target.id === target.id ? null : f)), 4700);
   };
 

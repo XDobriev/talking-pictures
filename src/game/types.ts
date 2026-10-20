@@ -83,6 +83,7 @@ export type SfxName =
   | 'horn'
   | 'bell'
   | 'coo'
+  | 'honk'
   | 'cluck'
   | 'neigh'
   | 'crow';

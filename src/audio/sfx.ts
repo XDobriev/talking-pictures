@@ -168,6 +168,10 @@ const SYNTH: Record<SfxName, () => void> = {
     [0, 0.16].forEach((d) => [2200, 3300, 4400].forEach((f) => tone('sine', f, f, 0.5, 0.06, d)));
   },
   coo: () => warble(380, 6, 30, 0.7, 'sine', 0.12),
+  honk: () => {
+    warble(330, 20, 50, 0.22, 'sawtooth', 0.1);
+    warble(310, 20, 50, 0.22, 'sawtooth', 0.1, 0.3);
+  },
   peep: () => {
     tone('sine', 3000, 3400, 0.07, 0.1);
     tone('sine', 3000, 3400, 0.07, 0.1, 0.15);
@@ -201,25 +205,34 @@ function loadBuffer(c: AudioContext, url: string) {
   return p;
 }
 
-export function playSfx(name: SfxName) {
-  if (!enabled || muted) return;
+const SYNTH_MS = 800; // синтезированные звуки короче секунды
+
+/** Проиграть звук; промис — когда он отзвучит (нужно, чтобы голос вступал после звука, а не поверх). */
+export function playSfx(name: SfxName): Promise<void> {
+  if (!enabled || muted) return Promise.resolve();
   const c = audioCtx();
-  if (!c || !master) return;
+  if (!c || !master) return Promise.resolve();
   if (c.state !== 'running') void c.resume();
   const url = fileFor(name);
   if (url) {
-    void loadBuffer(c, url).then((buf) => {
-      if (!buf || muted) return;
-      const src = c.createBufferSource();
-      src.buffer = buf;
-      src.connect(master!);
-      src.start();
-    });
-    return;
+    return loadBuffer(c, url).then(
+      (buf) =>
+        new Promise<void>((resolve) => {
+          if (!buf || muted) return resolve();
+          const src = c.createBufferSource();
+          src.buffer = buf;
+          src.connect(master!);
+          src.onended = () => resolve();
+          // страховка: onended может не прийти, если контекст приостановлен
+          setTimeout(resolve, buf.duration * 1000 + 300);
+          src.start();
+        }),
+    );
   }
   try {
     SYNTH[name]();
   } catch {
     /* звук не критичен для игры */
   }
+  return new Promise((r) => setTimeout(r, SYNTH_MS));
 }
