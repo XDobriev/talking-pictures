@@ -43,9 +43,13 @@ const keepRaw = (id, pcm) => writeFileSync(`${RAW}/${id}.pcm`, Buffer.from(pcm.b
 const VERIFIED = 'voice/verified.txt';
 function writeVoice(id, pcm) {
   writeFileSync(`${OUT}/${PREFIX}${id}.mp3`, toMp3(pcm));
-  if (SAMPLE || !existsSync(VERIFIED)) return;
-  const list = readFileSync(VERIFIED, 'utf8').split(/\s+/).filter((x) => x && x !== id);
-  writeFileSync(VERIFIED, list.join('\n') + '\n');
+  if (SAMPLE) return;
+  // Новый файл не проверен ни расшифровкой (verified.txt), ни на слух (heard.txt, ведёт пользователь через voice:listen).
+  for (const reg of [VERIFIED, 'voice/heard.txt']) {
+    if (!existsSync(reg)) continue;
+    const list = readFileSync(reg, 'utf8').split(/\s+/).filter((x) => x && x !== id);
+    writeFileSync(reg, list.join('\n') + '\n');
+  }
 }
 
 // Подача по настроению фразы. Ударения передаём знаком ударения над гласной (из разметки «+»).
