@@ -7,11 +7,11 @@ export interface Rect {
   h: number;
 }
 
-export type Kind = 'animal' | 'bird' | 'insect' | 'plant' | 'mushroom' | 'vegetable' | 'person' | 'toy' | 'thing';
+export type Kind = 'animal' | 'bird' | 'insect' | 'plant' | 'mushroom' | 'vegetable' | 'person' | 'toy' | 'thing' | 'food' | 'dishes' | 'body';
 export type Color = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'brown' | 'white' | 'grey' | 'black' | 'pink';
 export type Size = 'small' | 'medium' | 'big';
-export type Action = 'sleep' | 'eat' | 'jump' | 'sit' | 'fly' | 'swim' | 'hide' | 'look' | 'grow' | 'crawl' | 'sing' | 'swing' | 'slide' | 'ride' | 'play';
-export type Place = 'on_tree' | 'under_tree' | 'in_grass' | 'in_water' | 'in_sky' | 'on_stump' | 'behind_bush' | 'on_path' | 'on_fence' | 'in_garden';
+export type Action = 'sleep' | 'eat' | 'jump' | 'sit' | 'fly' | 'swim' | 'hide' | 'look' | 'grow' | 'crawl' | 'sing' | 'swing' | 'slide' | 'ride' | 'play' | 'cook';
+export type Place = 'on_tree' | 'under_tree' | 'in_grass' | 'in_water' | 'in_sky' | 'on_stump' | 'behind_bush' | 'on_path' | 'on_fence' | 'in_garden' | 'on_stove' | 'on_table';
 export type Emotion = 'happy' | 'sad' | 'scared' | 'sleepy' | 'calm';
 
 export interface ObjectTags {
@@ -71,6 +71,8 @@ export type SfxName =
   | 'tweet'
   | 'drip'
   | 'bubble'
+  | 'drops'
+  | 'boil'
   | 'whoosh'
   | 'sparkle'
   | 'grunt'
@@ -133,6 +135,11 @@ export interface SceneStory {
   intro: string;
   /** Финал на празднике, когда все уровни сцены пройдены. */
   finale: string;
+  /**
+   * Кто танцует на празднике: по умолчанию живые герои и игрушки; all — все цели (на кухне пляшет посуда);
+   * список id — свои гости (вечером вместо ушек и пяточек выходит весь мишка).
+   */
+  guests?: 'living' | 'all' | string[];
 }
 
 export interface SceneDef {

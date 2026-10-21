@@ -6,6 +6,13 @@ import { levelOpening, partyGuests, resetStory, sceneComplete, takeIntro } from 
 const has = (id: string) => id in PHRASES;
 
 describe('история сцен', () => {
+  it('свой список гостей праздника — только существующие объекты сцены', () => {
+    for (const s of SCENES) {
+      const list = s.story?.guests;
+      if (Array.isArray(list)) expect(partyGuests(s).map((o) => o.id), s.id).toEqual(list);
+    }
+  });
+
   beforeEach(resetStory);
 
   it('у каждой сцены есть завязка и финал из таблицы фраз', () => {
@@ -52,7 +59,7 @@ describe('история сцен', () => {
   });
 
   it('на праздник приходят живые герои без повторов, овощей и ягод нет', () => {
-    for (const s of SCENES) {
+    for (const s of SCENES.filter((s) => !s.story?.guests || s.story.guests === 'living')) {
       const g = partyGuests(s);
       expect(g.length, s.id).toBeGreaterThanOrEqual(8);
       expect(new Set(g.map((o) => o.id)).size).toBe(g.length);

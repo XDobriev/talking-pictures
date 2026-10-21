@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SCENES } from '../data/scenes';
 import { farm } from '../data/scenes/farm';
 import { forest } from '../data/scenes/forest';
+import { kitchen } from '../data/scenes/kitchen';
 import { yard } from '../data/scenes/yard';
 import { PHRASES, nameLabel } from '../data/phrases';
 import type { SceneDef } from './types';
@@ -164,6 +165,31 @@ describe('сцена «Двор»', () => {
 
   it('«кому грустно» — девочка с шариком и мальчик с мороженым', () => {
     expect(ids('yard_sad').sort()).toEqual(['boy_sad', 'girl_sad']);
+  });
+});
+
+describe('сцена «Кухня»', () => {
+  const ids = idsIn(kitchen);
+
+  it('«на плите» — чайник, кастрюля, сковородка', () => {
+    expect(ids('kitchen_stove').sort()).toEqual(['kettle', 'pan', 'pot']);
+  });
+
+  it('«посуда» — вся посуда, еда и кран не посуда', () => {
+    expect(ids('kitchen_dishes').sort()).toEqual(['cup', 'kettle', 'pan', 'plate', 'pot', 'spoon']);
+  });
+
+  it('«кто кушает» — девочка и мышка', () => {
+    expect(ids('kitchen_eat').sort()).toEqual(['kitchen_girl', 'kitchen_mouse']);
+  });
+
+  it('«всё жёлтое» — девочка в жёлтом, сыр, банан; «всё красное» — чайник, яблочко, чашка', () => {
+    expect(ids('kitchen_yellow').sort()).toEqual(['banana', 'cheese', 'kitchen_girl']);
+    expect(ids('kitchen_red').sort()).toEqual(['cup', 'kettle', 'kitchen_apple']);
+  });
+
+  it('«кому грустно» — мальчик с печеньем и котёнок', () => {
+    expect(ids('kitchen_sad').sort()).toEqual(['kitchen_boy', 'kitten']);
   });
 });
 

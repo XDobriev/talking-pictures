@@ -3,6 +3,7 @@ import { useRef, useState, type PointerEvent } from 'react';
 import { ObjectArt } from '../../art';
 import { playSfx, say } from '../../audio';
 import { SCENES } from '../../data/scenes';
+import { defaultSpot } from '../../game/album';
 import { useStore } from '../../game/store';
 import { RoundButton } from '../Button';
 import { HomeIcon } from '../icons';
@@ -12,12 +13,6 @@ import { useStage } from '../Stage';
 // Наклейка «говорит» своё имя при касании — ещё один повтор слова.
 
 const STICKER = 200;
-
-function defaultSpot(i: number) {
-  const col = i % 6;
-  const row = Math.floor(i / 6);
-  return { x: 14 + col * 14 + (row % 2) * 6, y: 40 + row * 24 };
-}
 
 export function AlbumScreen({ onHome }: { onHome(): void }) {
   const { save, update } = useStore();

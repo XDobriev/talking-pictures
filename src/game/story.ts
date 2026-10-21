@@ -33,8 +33,11 @@ const GUEST_KINDS: Kind[] = ['animal', 'bird', 'insect', 'person', 'toy'];
 
 /** Гости праздника: все живые герои (и игрушки) из заданий сцены, без повторов, в порядке появления. */
 export function partyGuests(scene: SceneDef): SceneObject[] {
+  const list = scene.story?.guests;
+  if (Array.isArray(list)) return list.map((id) => scene.objects.find((o) => o.id === id)).filter((o): o is SceneObject => !!o);
   const seen = new Map<string, SceneObject>();
-  for (const l of scene.levels) for (const t of resolveTargets(scene, l)) if (GUEST_KINDS.includes(t.tags.kind)) seen.set(t.id, t);
+  const all = list === 'all';
+  for (const l of scene.levels) for (const t of resolveTargets(scene, l)) if (all || GUEST_KINDS.includes(t.tags.kind)) seen.set(t.id, t);
   return [...seen.values()];
 }
 

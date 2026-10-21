@@ -44,6 +44,10 @@ const SOURCES = [
   // До 20.10 гусь «говорил» кряканьем утки (quack): в загадке «кто так говорит?» это сбивало бы ребёнка.
   { name: 'honk', commons: 'File:Geese Honking (loud).ogg', max: 1.6, who: 'гусь' },
   { name: 'coo', commons: 'File:Dove cooing.ogg', max: 2.0, who: 'голуби' },
+  // Кухня (21.10): загадки «что капает?» и «что булькает?» — тоже настоящие записи, не синтез.
+  // «Water drops dripping» с Викисклада — CC BY-SA, не подходит; берём «Drops of water #1» из BigSoundBank (CC0).
+  { name: 'drops', id: 1384, who: 'кран: кап-кап' },
+  { name: 'boil', commons: 'File:Boiling lentils.ogg', who: 'кастрюля: буль-буль' },
 ];
 // Варианты на выбор по слуху (--candidates → voice-compare/sfx-21-10/, в игру не попадают):
 // овечку, лягушку и «белочку/мышку» 20.10 на слух не узнали.

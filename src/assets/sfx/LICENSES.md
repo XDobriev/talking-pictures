@@ -23,5 +23,7 @@
 | `bell.mp3` | велосипед | [Bell Bike #2](https://bigsoundbank.com/sound-0275.html) — BigSoundBank, Joseph Sardin | CC0 1.0 |
 | `honk.mp3` | гусь | [Geese Honking (loud).ogg](https://commons.wikimedia.org/wiki/File:Geese_Honking_(loud).ogg) — Викисклад, U.S. Fish and Wildlife Service | Public domain |
 | `coo.mp3` | голуби | [Dove cooing.ogg](https://commons.wikimedia.org/wiki/File:Dove_cooing.ogg) — Викисклад, mary905 | Public domain |
+| `drops.mp3` | кран: кап-кап | [Drops of water #1](https://bigsoundbank.com/sound-1384.html) — BigSoundBank, Joseph Sardin | CC0 1.0 |
+| `boil.mp3` | кастрюля: буль-буль | [Boiling lentils.ogg](https://commons.wikimedia.org/wiki/File:Boiling_lentils.ogg) — Викисклад, hugh | Public domain |
 
 Звуки, которых нет в таблице, синтезируются в коде (`src/audio/sfx.ts`).
