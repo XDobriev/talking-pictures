@@ -13,16 +13,18 @@ import { Stage } from './ui/Stage';
 const loadMenu = () => import('./ui/screens/MenuScreen');
 const loadLevel = () => import('./ui/screens/LevelScreen');
 const loadAlbum = () => import('./ui/screens/AlbumScreen');
+const loadFinale = () => import('./ui/screens/FinaleScreen');
 const loadGate = () => import('./ui/ParentGate');
 const loadParent = () => import('./ui/ParentMenu');
 const MenuScreen = lazy(() => loadMenu().then((m) => ({ default: m.MenuScreen })));
 const LevelScreen = lazy(() => loadLevel().then((m) => ({ default: m.LevelScreen })));
 const AlbumScreen = lazy(() => loadAlbum().then((m) => ({ default: m.AlbumScreen })));
+const FinaleScreen = lazy(() => loadFinale().then((m) => ({ default: m.FinaleScreen })));
 const ParentGate = lazy(() => loadGate().then((m) => ({ default: m.ParentGate })));
 const ParentMenu = lazy(() => loadParent().then((m) => ({ default: m.ParentMenu })));
 const DevInspector = lazy(() => import('./ui/DevInspector').then((m) => ({ default: m.DevInspector })));
 
-type Screen = { name: 'start' } | { name: 'menu' } | { name: 'album' } | { name: 'level'; index: number; run: number };
+type Screen = { name: 'start' } | { name: 'menu' } | { name: 'album' } | { name: 'finale' } | { name: 'level'; index: number; run: number };
 
 export function App() {
   const { platform, save } = useStore();
@@ -45,7 +47,7 @@ export function App() {
     platform.gameReady();
     track('session_start', { platform: platform.name, lang: platform.lang() });
     // Подгружаем остальные экраны заранее, сразу после первого кадра.
-    const t = setTimeout(() => void Promise.all([loadLevel(), loadMenu(), loadAlbum(), loadGate(), loadParent()]), 0);
+    const t = setTimeout(() => void Promise.all([loadLevel(), loadMenu(), loadAlbum(), loadFinale(), loadGate(), loadParent()]), 0);
     return () => clearTimeout(t);
   }, [platform]);
 
@@ -97,9 +99,11 @@ export function App() {
               onLevel={(i) => void startLevel(i, false)}
               onParent={() => setOverlay('gate')}
               onAlbum={() => go({ name: 'album' })}
+              onFinale={() => go({ name: 'finale' })}
             />
           )}
           {screen.name === 'album' && <AlbumScreen onHome={() => go({ name: 'menu' })} />}
+          {screen.name === 'finale' && <FinaleScreen scene={scene} onHome={() => go({ name: 'menu' })} />}
           {screen.name === 'level' && (
             <LevelScreen
               scene={scene}
@@ -107,6 +111,7 @@ export function App() {
               onHome={() => go({ name: 'menu' })}
               onReplay={() => void startLevel(screen.index, true)}
               onNext={() => void startLevel(Math.min(screen.index + 1, scene.levels.length - 1), true)}
+              onFinale={() => go({ name: 'finale' })}
             />
           )}
           </Suspense>

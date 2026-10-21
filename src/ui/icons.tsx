@@ -60,7 +60,18 @@ export const AlbumIcon = () => (
   </svg>
 );
 
-export const SoundIcon = ({ on }: { on: boolean }) => (
+/** Праздник: три воздушных шарика на ниточках. */
+export const PartyIcon = () => (
+  <svg viewBox="0 0 100 100">
+    <path d="M30 46 Q34 64 48 86 M70 44 Q64 64 52 86 M50 36 Q47 62 50 86" fill="none" stroke="currentColor" strokeWidth={4} strokeLinecap="round" />
+    <ellipse cx={30} cy={32} rx={15} ry={18} fill="#f6c95c" transform="rotate(-14 30 32)" />
+    <ellipse cx={70} cy={30} rx={15} ry={18} fill="#86b0e4" transform="rotate(14 70 30)" />
+    <ellipse cx={50} cy={22} rx={15} ry={18} fill="currentColor" />
+    <path d="M44 14 Q46 10 50 9" fill="none" stroke="#fff" strokeOpacity={0.7} strokeWidth={4} strokeLinecap="round" />
+  </svg>
+);
+
+export const SoundIcon =({ on }: { on: boolean }) => (
   <svg viewBox="0 0 100 100">
     <path d="M18 40 H34 L54 22 V78 L34 60 H18Z" fill="currentColor" />
     {on ? <path d="M66 36 Q76 50 66 64 M74 26 Q90 50 74 74" {...S} strokeWidth={7} /> : <path d="M66 38 L86 62 M86 38 L66 62" {...S} strokeWidth={7} />}

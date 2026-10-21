@@ -123,6 +123,16 @@ export interface LevelDef {
   icon?: string;
   /** Фраза после победы для разговора с родителем (необязательно). */
   outro?: string;
+  /** Связка с историей сцены перед заданием («Гости уже идут. Слышишь?»), пока уровень не пройден. */
+  lead?: string;
+}
+
+/** История сцены: ради чего ребёнок ищет. Фразы — ключи таблицы фраз. */
+export interface SceneStory {
+  /** Завязка: звучит при первом входе в сцену и по касанию её вкладки. */
+  intro: string;
+  /** Финал на празднике, когда все уровни сцены пройдены. */
+  finale: string;
 }
 
 export interface SceneDef {
@@ -140,6 +150,7 @@ export interface SceneDef {
   baked?: boolean;
   objects: SceneObject[];
   levels: LevelDef[];
+  story?: SceneStory;
   /** Вопросы для совместной игры в родительском меню. */
   parentQuestions: string[];
 }

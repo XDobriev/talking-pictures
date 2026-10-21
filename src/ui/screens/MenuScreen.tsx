@@ -1,15 +1,19 @@
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { ObjectArt, SceneBackground, cropStyle, isBaked } from '../../art';
+import { say } from '../../audio';
 import { playSfx } from '../../audio/sfx';
 import { SCENES } from '../../data/scenes';
 import { resolveTargets } from '../../game/query';
 import { useStore } from '../../game/store';
+import { sceneComplete, takeIntro } from '../../game/story';
 import type { SceneDef } from '../../game/types';
 import { RoundButton } from '../Button';
-import { AlbumIcon, ParentIcon, StarIcon } from '../icons';
+import { AlbumIcon, ParentIcon, PartyIcon, StarIcon } from '../icons';
 
 // Тропинка уровней по лесу. Всё открыто сразу — малыша ничего не «запирает»,
 // а следующий уровень подсвечен, чтобы было понятно, куда нажимать.
+// В конце тропинки — праздник сцены: цель истории. Он оживает, когда пройдены все уровни.
 
 const PATH: { x: number; y: number }[] = [
   { x: 250, y: 840 },
@@ -22,7 +26,10 @@ const PATH: { x: number; y: number }[] = [
   { x: 1660, y: 560 },
   { x: 1480, y: 400 },
   { x: 1660, y: 290 }, // ниже замка «для взрослых», чтобы подсветка не наезжала на него
+  { x: 1300, y: 330 }, // праздник леса (10 уровней)
 ];
+
+const FINALE_SIZE = 200;
 
 const COMING: { id: string; title: string }[] = [];
 
@@ -49,17 +56,30 @@ export function MenuScreen({
   onLevel,
   onParent,
   onAlbum,
+  onFinale,
 }: {
   scene: SceneDef;
   onScene(id: string): void;
   onLevel(i: number): void;
   onParent(): void;
   onAlbum(): void;
+  onFinale(): void;
 }) {
   const { save } = useStore();
   const next = scene.levels.findIndex((l) => !save.completed.includes(l.id));
+  const complete = sceneComplete(scene, save.completed);
 
-  const d = PATH.map((p, i) => (i === 0 ? `M${p.x} ${p.y}` : `Q${(PATH[i - 1].x + p.x) / 2} ${Math.min(PATH[i - 1].y, p.y) - 90} ${p.x} ${p.y}`)).join(' ');
+  // Новая сцена — сначала история: ради чего искать.
+  useEffect(() => {
+    if (!scene.story || !takeIntro(scene, save.completed)) return;
+    const t = setTimeout(() => void say([scene.story!.intro]), 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scene]);
+
+  const path = PATH.slice(0, scene.levels.length + (scene.story ? 1 : 0));
+  const finalePos = scene.story ? path[scene.levels.length] : null;
+  const d = path.map((p, i) => (i === 0 ? `M${p.x} ${p.y}` : `Q${(path[i - 1].x + p.x) / 2} ${Math.min(path[i - 1].y, p.y) - 90} ${p.x} ${p.y}`)).join(' ');
 
   return (
     <div className="absolute inset-0" data-testid="menu">
@@ -115,6 +135,37 @@ export function MenuScreen({
         );
       })}
 
+      {/* Праздник в конце тропинки. Пока не все уровни пройдены — приглушён и по касанию обещает праздник впереди. */}
+      {finalePos && (
+        <motion.button
+          type="button"
+          aria-label="праздник"
+          data-testid="праздник"
+          onPointerDown={(e) => {
+            if (!e.isPrimary) return;
+            if (complete) onFinale();
+            else void say(['finale_wait']);
+          }}
+          className="cut absolute flex items-center justify-center rounded-full p-8 text-cream"
+          style={{
+            left: finalePos.x - FINALE_SIZE / 2,
+            top: finalePos.y - FINALE_SIZE / 2,
+            width: FINALE_SIZE,
+            height: FINALE_SIZE,
+            backgroundColor: complete ? 'var(--color-berry)' : 'var(--color-paper)',
+            color: complete ? 'var(--color-cream)' : 'rgba(61,58,47,0.35)',
+            outline: complete ? '10px solid var(--color-ochre)' : 'none',
+            outlineOffset: 4,
+            ['--cut-shadow' as string]: complete ? '#8e2c40' : undefined,
+          }}
+          initial={{ scale: 0 }}
+          animate={complete ? { scale: [1, 1.08, 1], rotate: [0, -4, 4, 0] } : { scale: 1 }}
+          transition={complete ? { repeat: Infinity, duration: 1.8 } : { delay: scene.levels.length * 0.05, duration: 0.45 }}
+        >
+          <PartyIcon />
+        </motion.button>
+      )}
+
       {/* Вкладки сцен: герой сцены + название (ребёнок узнаёт сцену по картинке). Текущая — крупнее и с охряной обводкой. */}
       <div className="absolute left-[40px] top-[36px] flex items-center gap-5">
         <RoundButton label="альбом" onPress={onAlbum} size={130} tone="berry">
@@ -122,14 +173,23 @@ export function MenuScreen({
         </RoundButton>
         {SCENES.map((s) =>
           s.id === scene.id ? (
-            <div
+            // Касание текущей вкладки — ещё раз рассказать историю сцены.
+            <motion.button
               key={s.id}
+              type="button"
+              aria-label={`${s.title}: история`}
+              data-testid="история"
+              onPointerDown={(e) => {
+                if (!e.isPrimary || !s.story) return;
+                void say([s.story.intro]);
+              }}
               className="paper flex h-[140px] items-center gap-4 rounded-full pl-4 pr-10 font-display text-[54px]"
               style={{ boxShadow: '0 8px 0 0 var(--color-paper-edge)', outline: '8px solid var(--color-ochre)', outlineOffset: 2 }}
+              whileTap={{ scale: 0.96, y: 3 }}
             >
               <SceneHero scene={s} size={110} />
               {s.title}
-            </div>
+            </motion.button>
           ) : (
             <motion.button
               key={s.id}

@@ -2,7 +2,7 @@
 // Сейчас пишет в консоль (dev) и в кольцевой буфер localStorage — его видно в dev-инспекторе.
 // Позже — Яндекс Метрика (Яндекс Игры рекомендуют её сами, курс «Аналитика с Яндекс Метрикой»).
 
-export type EventName = 'level_start' | 'target_found' | 'wrong_tap' | 'hint_used' | 'hint_passive' | 'level_complete' | 'ad_shown' | 'session_start';
+export type EventName = 'level_start' | 'target_found' | 'wrong_tap' | 'hint_used' | 'hint_passive' | 'level_complete' | 'ad_shown' | 'session_start' | 'finale_open';
 
 const KEY = 'talking-pictures-telemetry';
 const LIMIT = 300;

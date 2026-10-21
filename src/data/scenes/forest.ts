@@ -52,6 +52,7 @@ export const forest: SceneDef = {
   icon: 'squirrel',
   background: 'forest/bg',
   baked: true,
+  story: { intro: 'forest_intro', finale: 'forest_finale' },
   objects,
   // Порядок = рост сложности (п. 2.8 требований): кто это → на слух → действие → место → признак → эмоции.
   // 10 уровней ≈ 10–15 минут для малыша (п. 2.9: контента больше чем на 10 минут).
@@ -59,23 +60,23 @@ export const forest: SceneDef = {
     // Кто это? По одному, с силуэтами — для самых маленьких.
     { id: 'forest_who1', type: 'who', task: 'squirrel_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['squirrel', 'hedgehog', 'bunny'] } },
     // Кто так говорит? На слух, без силуэтов.
-    { id: 'forest_sound', type: 'sound', task: 'task_sound_intro', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['owl', 'duck', 'frog', 'bee'] } },
+    { id: 'forest_sound', type: 'sound', task: 'task_sound_intro', lead: 'forest_lead_sound', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['owl', 'duck', 'frog', 'bee'] } },
     // Кто это? Второй круг — новые слова.
-    { id: 'forest_who2', type: 'who', task: 'fox_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['fox', 'owl', 'bear', 'frog'] } },
+    { id: 'forest_who2', type: 'who', task: 'fox_ask', lead: 'forest_lead_who2', mode: 'sequence', prompt: 'ask', query: { ids: ['fox', 'owl', 'bear', 'frog'] } },
     // Глаголы: кто спит?
-    { id: 'forest_sleep', type: 'action', task: 'task_sleep', query: { action: 'sleep' } },
+    { id: 'forest_sleep', type: 'action', task: 'task_sleep', lead: 'forest_lead_sleep', query: { action: 'sleep' } },
     // Место: кто живёт в пруду?
-    { id: 'forest_pond', type: 'place', task: 'task_pond', query: { place: 'in_water' } },
+    { id: 'forest_pond', type: 'place', task: 'task_pond', lead: 'forest_lead_pond', query: { place: 'in_water' } },
     // Признак: всё красное.
-    { id: 'forest_red', type: 'attribute', task: 'task_red', query: { color: 'red' } },
+    { id: 'forest_red', type: 'attribute', task: 'task_red', lead: 'forest_lead_red', query: { color: 'red' } },
     // Признак: всё жёлтое.
-    { id: 'forest_yellow', type: 'attribute', task: 'task_yellow', query: { color: 'yellow' } },
+    { id: 'forest_yellow', type: 'attribute', task: 'task_yellow', lead: 'forest_lead_yellow', query: { color: 'yellow' } },
     // Категория: насекомые.
-    { id: 'forest_bugs', type: 'attribute', task: 'task_bugs', query: { kind: 'insect' } },
+    { id: 'forest_bugs', type: 'attribute', task: 'task_bugs', lead: 'forest_lead_bugs', query: { kind: 'insect' } },
     // Предлоги: кто на дереве?
-    { id: 'forest_tree', type: 'place', task: 'task_on_tree', query: { kind: ['animal', 'bird'], place: 'on_tree' } },
+    { id: 'forest_tree', type: 'place', task: 'task_on_tree', lead: 'lead_up', query: { kind: ['animal', 'bird'], place: 'on_tree' } },
     // Эмоции: кому грустно — пожалей.
-    { id: 'forest_sad', type: 'emotion', task: 'task_sad', query: { emotion: 'sad' } },
+    { id: 'forest_sad', type: 'emotion', task: 'task_sad', lead: 'lead_cheer', query: { emotion: 'sad' } },
   ],
   parentQuestions: [
     'Что делает белочка? А что она ест?',

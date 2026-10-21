@@ -7,6 +7,7 @@ import { RageDetector, hintStage, hintThresholds } from '../../game/input';
 import { resolveTargets } from '../../game/query';
 import { riddleSteps } from '../../game/riddle';
 import { markLevelDone, useStore } from '../../game/store';
+import { levelOpening, sceneComplete } from '../../game/story';
 import { track } from '../../game/telemetry';
 import type { SceneDef, SceneObject, SfxName } from '../../game/types';
 import { HoldButton } from '../Button';
@@ -41,12 +42,14 @@ export function LevelScreen({
   onHome,
   onNext,
   onReplay,
+  onFinale,
 }: {
   scene: SceneDef;
   levelIndex: number;
   onHome(): void;
   onNext(): void;
   onReplay(): void;
+  onFinale(): void;
 }) {
   const { platform, save, update } = useStore();
   const level = scene.levels[levelIndex];
@@ -57,6 +60,10 @@ export function LevelScreen({
   const [found, setFound] = useState<Set<string>>(() => new Set());
   const [current, setCurrent] = useState(0);
   const [phase, setPhase] = useState<'playing' | 'finishing' | 'won'>('playing');
+  /** Праздник в окне победы: new — этот уровень только что завершил сцену (зовём голосом), again — сцена пройдена раньше. */
+  const [finale, setFinale] = useState<'new' | 'again' | null>(null);
+  // Связка с историей сцены считается один раз: завязка звучит единожды за сессию.
+  const [opening] = useState(() => levelOpening(scene, level, save.completed));
   const [flights, setFlights] = useState<Flight[]>([]);
   const [reactions, setReactions] = useState<Record<string, Reaction>>({});
   const [moods, setMoods] = useState<Record<string, Mood>>(() =>
@@ -134,10 +141,10 @@ export function LevelScreen({
     track('level_start', { level: level.id });
     if (soundLevel) {
       // «Слушай внимательно! Кто так говорит?» → кваканье
-      void say([level.task]).then((ok) => ok && playRiddle(targets[0], false));
+      void say([...opening, level.task]).then((ok) => ok && playRiddle(targets[0], false));
     } else {
       const first = promptFor(targets[0]);
-      void say(seq && level.task !== first ? [level.task, first] : [first]);
+      void say([...opening, ...(seq && level.task !== first ? [level.task, first] : [first])]);
     }
     return () => {
       stopVoice();
@@ -184,11 +191,15 @@ export function LevelScreen({
 
   const win = useCallback(() => {
     setPhase('won');
+    const before = sceneComplete(scene, save.completed);
+    const after = sceneComplete(scene, [...save.completed, level.id]);
+    setFinale(after && !before ? 'new' : after && levelIndex === scene.levels.length - 1 ? 'again' : null);
     update((s) => markLevelDone(level.id, targets[0].id)(s));
     track('level_complete', { level: level.id, seconds: Math.round((performance.now() - startedAt.current) / 1000) });
     platform.gameplayStop();
-    void say(['win', 'sticker']);
-  }, [update, level.id, targets, platform]);
+    // «Это тебе наклейка!» — из окна победы, когда наклейка появится после сценки.
+    void say(['win']);
+  }, [update, level.id, targets, platform, scene, save.completed, levelIndex]);
 
   const handleFound = (obj: SceneObject) => {
     const next = new Set(foundRef.current).add(obj.id);
@@ -382,11 +393,14 @@ export function LevelScreen({
       {phase === 'won' && (
         <WinOverlay
           scene={scene}
+          heroes={targets}
           sticker={targets[0]}
           hasNext={levelIndex < scene.levels.length - 1}
+          finale={finale}
           onNext={onNext}
           onHome={onHome}
           onReplay={onReplay}
+          onFinale={onFinale}
         />
       )}
     </div>

@@ -1,47 +1,98 @@
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ObjectArt } from '../art';
-import { playSfx } from '../audio';
+import { playSfx, say } from '../audio';
 import type { SceneDef, SceneObject } from '../game/types';
 import { RoundButton } from './Button';
-import { ArrowIcon, HomeIcon, ReplayIcon, StarIcon } from './icons';
+import { HeroParade, paradeDuration } from './HeroParade';
+import { ArrowIcon, HomeIcon, PartyIcon, ReplayIcon, StarIcon } from './icons';
 
-// Праздник без оценок: всегда 3 звезды из 3, наклейка-награда, большая стрелка «дальше».
+// Праздник без оценок: сначала найденные герои танцуют (сценка), потом 3 звезды из 3, наклейка и большая стрелка «дальше».
+// Последний уровень сцены вместо стрелки зовёт на праздник со всеми героями.
+
+export function fireConfetti() {
+  const colors = ['#f6c95c', '#e78b98', '#86b0e4', '#9cbf5b', '#fbf7ee'];
+  const fire = (x: number) =>
+    confetti({ particleCount: 70, spread: 75, startVelocity: 48, origin: { x, y: 0.7 }, colors, ticks: 220, scalar: 1.1, disableForReducedMotion: true });
+  fire(0.25);
+  const t1 = setTimeout(() => fire(0.75), 260);
+  const t2 = setTimeout(() => fire(0.5), 620);
+  return () => {
+    clearTimeout(t1);
+    clearTimeout(t2);
+  };
+}
 
 export function WinOverlay({
   scene,
+  heroes,
   sticker,
   hasNext,
+  finale,
   onNext,
   onHome,
   onReplay,
+  onFinale,
 }: {
   scene: SceneDef;
+  /** Кто танцует в сценке — найденные на уровне герои. */
+  heroes: SceneObject[];
   sticker: SceneObject;
   hasNext: boolean;
+  /** Кнопка праздника вместо «дальше»: new — сцена только что пройдена (зовём голосом), again — пройдена раньше. */
+  finale: 'new' | 'again' | null;
   onNext(): void;
   onHome(): void;
   onReplay(): void;
+  onFinale(): void;
 }) {
+  const [stage, setStage] = useState<'parade' | 'card'>('parade');
+
   useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
-    const colors = ['#f6c95c', '#e78b98', '#86b0e4', '#9cbf5b', '#fbf7ee'];
-    const fire = (x: number) =>
-      confetti({ particleCount: 70, spread: 75, startVelocity: 48, origin: { x, y: 0.7 }, colors, ticks: 220, scalar: 1.1, disableForReducedMotion: true });
-    fire(0.25);
-    const t1 = setTimeout(() => fire(0.75), 260);
-    const t2 = setTimeout(() => fire(0.5), 620);
-    [0, 1, 2].forEach((i) => setTimeout(() => playSfx('sparkle'), 450 + i * 380));
+    const stop = fireConfetti();
+    const t = setTimeout(() => setStage('card'), paradeDuration(heroes.length));
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      stop();
+      clearTimeout(t);
     };
-  }, []);
+  }, [heroes.length]);
+
+  useEffect(() => {
+    if (stage !== 'card') return;
+    const timers = [0, 1, 2].map((i) => setTimeout(() => playSfx('sparkle'), 450 + i * 380));
+    timers.push(setTimeout(() => void say(finale === 'new' ? ['sticker', 'finale_go'] : ['sticker']), 1500));
+    return () => timers.forEach(clearTimeout);
+  }, [stage, finale]);
+
+  if (stage === 'parade')
+    return (
+      <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} data-testid="win">
+        <div className="absolute inset-0 bg-night/45" />
+        <div className="relative">
+          <HeroParade scene={scene} heroes={heroes} size={heroes.length > 5 ? 260 : 320} />
+        </div>
+      </motion.div>
+    );
+
+  const forward = finale ? (
+    <motion.div animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.6, delay: 2.2 }}>
+      <RoundButton label="праздник" onPress={onFinale} size={190} tone="berry">
+        <PartyIcon />
+      </RoundButton>
+    </motion.div>
+  ) : (
+    hasNext && (
+      <motion.div animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.6, delay: 2.2 }}>
+        <RoundButton label="дальше" onPress={onNext} size={190} tone="moss">
+          <ArrowIcon />
+        </RoundButton>
+      </motion.div>
+    )
+  );
 
   return (
-    <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} data-testid="win">
+    <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" initial={{ opacity: 1 }} animate={{ opacity: 1 }} data-testid="win">
       <div className="absolute inset-0 bg-night/45" />
       <motion.div
         className="paper relative flex w-[980px] flex-col items-center rounded-[72px] px-16 pb-14 pt-10"
@@ -84,13 +135,7 @@ export function WinOverlay({
           <RoundButton label="ещё раз" onPress={onReplay} size={130} tone="paper">
             <ReplayIcon />
           </RoundButton>
-          {hasNext && (
-            <motion.div animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 1.6, delay: 2.2 }}>
-              <RoundButton label="дальше" onPress={onNext} size={190} tone="moss">
-                <ArrowIcon />
-              </RoundButton>
-            </motion.div>
-          )}
+          {forward}
         </div>
       </motion.div>
     </motion.div>

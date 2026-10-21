@@ -52,21 +52,22 @@ export const yard: SceneDef = {
   icon: 'ball',
   background: 'yard/bg',
   baked: true,
+  story: { intro: 'yard_intro', finale: 'yard_finale' },
   objects,
   levels: [
     // Предметы — первые слова.
     { id: 'yard_who1', type: 'who', task: 'ball_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['ball', 'bucket', 'scooter'] } },
     // Звуки двора: би-би, чик-чирик, дзынь-дзынь, гули-гули.
-    { id: 'yard_sound', type: 'sound', task: 'task_sound_intro', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['car', 'sparrow', 'boy_bike', 'pigeons'] } },
+    { id: 'yard_sound', type: 'sound', task: 'task_sound_intro', lead: 'yard_lead_sound', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['car', 'sparrow', 'boy_bike', 'pigeons'] } },
     // Глаголы: задание звучит действием («Кто качается на качелях?»), эхо — тоже глагол.
-    { id: 'yard_verbs1', type: 'action', task: 'girl_swing_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['girl_swing', 'boy_slide', 'girl_rope'] } },
-    { id: 'yard_verbs2', type: 'action', task: 'boy_bike_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['boy_bike', 'boy_ball', 'kid_sand'] } },
+    { id: 'yard_verbs1', type: 'action', task: 'girl_swing_ask', lead: 'yard_lead_verbs1', mode: 'sequence', prompt: 'ask', query: { ids: ['girl_swing', 'boy_slide', 'girl_rope'] } },
+    { id: 'yard_verbs2', type: 'action', task: 'boy_bike_ask', lead: 'yard_lead_verbs2', mode: 'sequence', prompt: 'ask', query: { ids: ['boy_bike', 'boy_ball', 'kid_sand'] } },
     // Обобщающее слово: игрушки.
-    { id: 'yard_toys', type: 'attribute', task: 'task_toys', icon: 'scooter', query: { kind: 'toy' } },
+    { id: 'yard_toys', type: 'attribute', task: 'task_toys', lead: 'yard_lead_toys', icon: 'scooter', query: { kind: 'toy' } },
     // Место: что в небе?
-    { id: 'yard_sky', type: 'place', task: 'task_sky', icon: 'plane', query: { place: 'in_sky' } },
-    { id: 'yard_red', type: 'attribute', task: 'task_red', icon: 'balloon', query: { color: 'red' } },
-    { id: 'yard_sad', type: 'emotion', task: 'task_sad', query: { emotion: 'sad' } },
+    { id: 'yard_sky', type: 'place', task: 'task_sky', lead: 'lead_up', icon: 'plane', query: { place: 'in_sky' } },
+    { id: 'yard_red', type: 'attribute', task: 'task_red', lead: 'yard_lead_red', icon: 'balloon', query: { color: 'red' } },
+    { id: 'yard_sad', type: 'emotion', task: 'task_sad', lead: 'yard_lead_sad', query: { emotion: 'sad' } },
   ],
   parentQuestions: [
     'Что делает девочка на качелях? А мальчик на горке?',

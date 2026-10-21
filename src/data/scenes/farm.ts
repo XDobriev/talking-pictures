@@ -53,22 +53,23 @@ export const farm: SceneDef = {
   icon: 'cow',
   background: 'farm/bg',
   baked: true,
+  story: { intro: 'farm_intro', finale: 'farm_finale' },
   objects,
   // Та же лестница сложности, что в лесу: кто это → на слух → действие → категория → признак → место → эмоции.
   levels: [
     // Домашние животные — первые слова малыша.
-    { id: 'farm_who1', type: 'who', task: 'cow_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['cow', 'pig', 'dog'] } },
+    { id: 'farm_who1', type: 'who', task: 'cow_ask', lead: 'farm_lead_who1', mode: 'sequence', prompt: 'ask', query: { ids: ['cow', 'pig', 'dog'] } },
     // Звукоподражания: мяу, кукареку, бе-е, га-га-га.
-    { id: 'farm_sound', type: 'sound', task: 'task_sound_intro', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['cat', 'rooster', 'sheep', 'goose'] } },
-    { id: 'farm_who2', type: 'who', task: 'horse_ask', mode: 'sequence', prompt: 'ask', query: { ids: ['horse', 'goat', 'hen', 'chick'] } },
+    { id: 'farm_sound', type: 'sound', task: 'task_sound_intro', lead: 'farm_lead_sound', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['cat', 'rooster', 'sheep', 'goose'] } },
+    { id: 'farm_who2', type: 'who', task: 'horse_ask', lead: 'farm_lead_who2', mode: 'sequence', prompt: 'ask', query: { ids: ['horse', 'goat', 'hen', 'chick'] } },
     // Глагол: кто кушает?
-    { id: 'farm_eat', type: 'action', task: 'task_eat', query: { action: 'eat' } },
+    { id: 'farm_eat', type: 'action', task: 'task_eat', lead: 'farm_lead_eat', query: { action: 'eat' } },
     // Обобщающее слово: овощи.
-    { id: 'farm_garden', type: 'attribute', task: 'task_garden', query: { kind: 'vegetable' } },
-    { id: 'farm_red', type: 'attribute', task: 'task_red', query: { color: 'red' } },
+    { id: 'farm_garden', type: 'attribute', task: 'task_garden', lead: 'farm_lead_garden', query: { kind: 'vegetable' } },
+    { id: 'farm_red', type: 'attribute', task: 'task_red', lead: 'farm_lead_red', query: { color: 'red' } },
     // Предлог «на»: кто на заборе?
-    { id: 'farm_fence', type: 'place', task: 'task_fence', query: { kind: ['animal', 'bird'], place: 'on_fence' } },
-    { id: 'farm_sad', type: 'emotion', task: 'task_sad', query: { emotion: 'sad' } },
+    { id: 'farm_fence', type: 'place', task: 'task_fence', lead: 'farm_lead_fence', query: { kind: ['animal', 'bird'], place: 'on_fence' } },
+    { id: 'farm_sad', type: 'emotion', task: 'task_sad', lead: 'lead_cheer', query: { emotion: 'sad' } },
   ],
   parentQuestions: [
     'Как говорит коровка? А собачка? А кошка?',
