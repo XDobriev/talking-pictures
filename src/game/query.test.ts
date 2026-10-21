@@ -5,6 +5,7 @@ import { forest } from '../data/scenes/forest';
 import { kitchen } from '../data/scenes/kitchen';
 import { yard } from '../data/scenes/yard';
 import { PHRASES, nameLabel } from '../data/phrases';
+import { MENU_PATH } from '../ui/menuPath';
 import type { SceneDef } from './types';
 import { resolveTargets, validateScene } from './query';
 
@@ -45,16 +46,40 @@ describe.each(SCENES.map((s) => [s.title, s] as const))('сцена «%s»: об
       has(o.voice.name); has(o.voice.fact); has(o.voice.echo);
       has(o.voice.ask); has(o.voice.sound); has(o.voice.helped);
     }
-    for (const l of scene.levels) has(l.task);
+    for (const l of scene.levels) {
+      has(l.task);
+      for (const k of Object.values(l.asks ?? {})) has(k);
+    }
     expect(missing).toEqual([]);
   });
 
   it('в пошаговых уровнях у каждой цели есть фраза-задание', () => {
     for (const lvl of scene.levels.filter((l) => l.mode === 'sequence')) {
       for (const t of resolveTargets(scene, lvl)) {
-        expect(t.voice[lvl.prompt ?? 'ask'], `${lvl.id}/${t.id}`).toBeTruthy();
+        expect(lvl.asks?.[t.id] ?? t.voice[lvl.prompt ?? 'ask'], `${lvl.id}/${t.id}`).toBeTruthy();
       }
     }
+  });
+
+  it('свои вопросы уровня — ровно к его целям и только в пошаговом режиме', () => {
+    for (const lvl of scene.levels.filter((l) => l.asks)) {
+      expect(lvl.mode, lvl.id).toBe('sequence');
+      expect(Object.keys(lvl.asks!), lvl.id).toEqual(resolveTargets(scene, lvl).map((t) => t.id));
+    }
+  });
+
+  it('«Где спрятался?»: простой и сложный уровень, силуэты скрыты', () => {
+    const where = scene.levels.filter((l) => l.task === 'task_where' || l.task === 'task_where2');
+    expect(where.map((l) => l.task).sort()).toEqual(['task_where', 'task_where2']);
+    for (const l of where) expect(l.hideSilhouettes, l.id).toBe(true);
+    // простой идёт раньше сложного
+    expect(scene.levels.indexOf(where.find((l) => l.task === 'task_where')!)).toBeLessThan(
+      scene.levels.indexOf(where.find((l) => l.task === 'task_where2')!),
+    );
+  });
+
+  it('тропинка в меню вмещает все уровни и праздник', () => {
+    expect(scene.levels.length + 1).toBeLessThanOrEqual(MENU_PATH.length);
   });
 
   it('иконка уровня в меню — одна из его целей', () => {

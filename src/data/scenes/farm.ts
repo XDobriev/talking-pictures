@@ -64,11 +64,15 @@ export const farm: SceneDef = {
     { id: 'farm_who2', type: 'who', task: 'horse_ask', lead: 'farm_lead_who2', mode: 'sequence', prompt: 'ask', query: { ids: ['horse', 'goat', 'hen', 'chick'] } },
     // Глагол: кто кушает?
     { id: 'farm_eat', type: 'action', task: 'task_eat', lead: 'farm_lead_eat', query: { action: 'eat' } },
+    // «Где спрятался?» — «в, на». Силуэты скрыты: искать по слову, а не по форме.
+    { id: 'farm_where1', type: 'place', task: 'task_where', lead: 'lead_hide', mode: 'sequence', hideSilhouettes: true, query: { ids: ['pig', 'goose', 'apple'] }, asks: { pig: 'where_pig', goose: 'where_goose', apple: 'where_apple' } },
     // Обобщающее слово: овощи.
     { id: 'farm_garden', type: 'attribute', task: 'task_garden', lead: 'farm_lead_garden', query: { kind: 'vegetable' } },
     { id: 'farm_red', type: 'attribute', task: 'task_red', lead: 'farm_lead_red', query: { color: 'red' } },
     // Предлог «на»: кто на заборе?
     { id: 'farm_fence', type: 'place', task: 'task_fence', lead: 'farm_lead_fence', query: { kind: ['animal', 'bird'], place: 'on_fence' } },
+    // «Где спрятался?» — «рядом, между». Козу и овечку под яблоней не спрашиваем: под деревом стоят обе.
+    { id: 'farm_where2', type: 'place', task: 'task_where2', lead: 'lead_hide2', mode: 'sequence', hideSilhouettes: true, query: { ids: ['chick', 'tractor', 'dog'] }, asks: { chick: 'where_chick', tractor: 'where_tractor', dog: 'where_dog' } },
     { id: 'farm_sad', type: 'emotion', task: 'task_sad', lead: 'lead_cheer', query: { emotion: 'sad' } },
   ],
   parentQuestions: [

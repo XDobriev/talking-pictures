@@ -62,11 +62,15 @@ export const yard: SceneDef = {
     // Глаголы: задание звучит действием («Кто качается на качелях?»), эхо — тоже глагол.
     { id: 'yard_verbs1', type: 'action', task: 'girl_swing_ask', lead: 'yard_lead_verbs1', mode: 'sequence', prompt: 'ask', query: { ids: ['girl_swing', 'boy_slide', 'girl_rope'] } },
     { id: 'yard_verbs2', type: 'action', task: 'boy_bike_ask', lead: 'yard_lead_verbs2', mode: 'sequence', prompt: 'ask', query: { ids: ['boy_bike', 'boy_ball', 'kid_sand'] } },
+    // «Где спрятался?» — «на» и «под» у одного дерева, потом «в». Силуэты скрыты: искать по слову, а не по форме.
+    { id: 'yard_where1', type: 'place', task: 'task_where', lead: 'lead_hide', mode: 'sequence', hideSilhouettes: true, query: { ids: ['sparrow', 'boy_sad', 'kid_sand'] }, asks: { sparrow: 'where_sparrow', boy_sad: 'where_boy_sad', kid_sand: 'where_kid_sand' } },
     // Обобщающее слово: игрушки.
     { id: 'yard_toys', type: 'attribute', task: 'task_toys', lead: 'yard_lead_toys', icon: 'scooter', query: { kind: 'toy' } },
     // Место: что в небе?
     { id: 'yard_sky', type: 'place', task: 'task_sky', lead: 'lead_up', icon: 'plane', query: { place: 'in_sky' } },
     { id: 'yard_red', type: 'attribute', task: 'task_red', lead: 'yard_lead_red', icon: 'balloon', query: { color: 'red' } },
+    // «Где спрятался?» — «рядом, между».
+    { id: 'yard_where2', type: 'place', task: 'task_where2', lead: 'lead_hide2', mode: 'sequence', hideSilhouettes: true, query: { ids: ['car', 'scooter', 'girl_sad'] }, asks: { car: 'where_car', scooter: 'where_scooter', girl_sad: 'where_girl_sad' } },
     { id: 'yard_sad', type: 'emotion', task: 'task_sad', lead: 'yard_lead_sad', query: { emotion: 'sad' } },
   ],
   parentQuestions: [

@@ -66,11 +66,15 @@ export const kitchen: SceneDef = {
     { id: 'kitchen_who2', type: 'who', task: 'bread_ask', lead: 'kitchen_lead_who2', mode: 'sequence', prompt: 'ask', query: { ids: ['bread', 'milk', 'cheese', 'pie'] } },
     // Предлог «на»: что стоит на плите?
     { id: 'kitchen_stove', type: 'place', task: 'task_stove', lead: 'kitchen_lead_stove', icon: 'pot', query: { place: 'on_stove' } },
+    // «Где спрятался?» — «под, в, на». Силуэты скрыты: искать по слову, а не по форме.
+    { id: 'kitchen_where1', type: 'place', task: 'task_where', lead: 'lead_hide', mode: 'sequence', hideSilhouettes: true, query: { ids: ['kitten', 'parrot', 'kitchen_girl'] }, asks: { kitten: 'where_kitten', parrot: 'where_parrot', kitchen_girl: 'where_kitchen_girl' } },
     { id: 'kitchen_eat', type: 'action', task: 'task_eat', lead: 'kitchen_lead_eat', icon: 'kitchen_mouse', query: { action: 'eat' } },
     // Обобщающее слово: посуда.
     { id: 'kitchen_dishes', type: 'attribute', task: 'task_dishes', lead: 'kitchen_lead_dishes', icon: 'cup', query: { kind: 'dishes' } },
     { id: 'kitchen_yellow', type: 'attribute', task: 'task_yellow', lead: 'kitchen_lead_yellow', icon: 'banana', query: { color: 'yellow' } },
     { id: 'kitchen_red', type: 'attribute', task: 'task_red', lead: 'kitchen_lead_red', icon: 'kitchen_apple', query: { color: 'red' } },
+    // «Где спрятался?» — «рядом, между».
+    { id: 'kitchen_where2', type: 'place', task: 'task_where2', lead: 'lead_hide2', mode: 'sequence', hideSilhouettes: true, query: { ids: ['kitchen_mouse', 'banana', 'grandma'] }, asks: { kitchen_mouse: 'where_kitchen_mouse', banana: 'where_banana', grandma: 'where_grandma' } },
     { id: 'kitchen_sad', type: 'emotion', task: 'task_sad', lead: 'kitchen_lead_sad', icon: 'kitten', query: { emotion: 'sad' } },
   ],
   parentQuestions: [

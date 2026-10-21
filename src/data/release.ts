@@ -13,6 +13,7 @@ export function scenePhrases(scene: SceneDef): Set<string> {
     ids.add(l.task);
     if (l.lead) ids.add(l.lead);
     if (l.outro) ids.add(l.outro);
+    for (const k of Object.values(l.asks ?? {})) ids.add(k);
   }
   if (scene.story) ids.add(scene.story.intro).add(scene.story.finale);
   return ids;

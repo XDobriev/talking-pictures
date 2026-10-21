@@ -67,6 +67,8 @@ export const forest: SceneDef = {
     { id: 'forest_sleep', type: 'action', task: 'task_sleep', lead: 'forest_lead_sleep', query: { action: 'sleep' } },
     // Место: кто живёт в пруду?
     { id: 'forest_pond', type: 'place', task: 'task_pond', lead: 'forest_lead_pond', query: { place: 'in_water' } },
+    // «Где спрятался?» — простые предлоги «на, под, в». Силуэты скрыты: искать по слову, а не по форме.
+    { id: 'forest_where1', type: 'place', task: 'task_where', lead: 'lead_hide', mode: 'sequence', hideSilhouettes: true, query: { ids: ['ladybug', 'hedgehog', 'owl'] }, asks: { ladybug: 'where_ladybug', hedgehog: 'where_hedgehog', owl: 'where_owl' } },
     // Признак: всё красное.
     { id: 'forest_red', type: 'attribute', task: 'task_red', lead: 'forest_lead_red', query: { color: 'red' } },
     // Признак: всё жёлтое.
@@ -75,6 +77,8 @@ export const forest: SceneDef = {
     { id: 'forest_bugs', type: 'attribute', task: 'task_bugs', lead: 'forest_lead_bugs', query: { kind: 'insect' } },
     // Предлоги: кто на дереве?
     { id: 'forest_tree', type: 'place', task: 'task_on_tree', lead: 'lead_up', query: { kind: ['animal', 'bird'], place: 'on_tree' } },
+    // «Где спрятался?» — сложные предлоги «рядом, между» (4–5 лет).
+    { id: 'forest_where2', type: 'place', task: 'task_where2', lead: 'lead_hide2', mode: 'sequence', hideSilhouettes: true, query: { ids: ['bear', 'frog', 'mouse'] }, asks: { bear: 'where_bear', frog: 'where_frog', mouse: 'where_mouse' } },
     // Эмоции: кому грустно — пожалей.
     { id: 'forest_sad', type: 'emotion', task: 'task_sad', lead: 'lead_cheer', query: { emotion: 'sad' } },
   ],

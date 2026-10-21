@@ -97,8 +97,8 @@ export function LevelScreen({
   }, [seq, targets, current, found]);
 
   const promptFor = useCallback(
-    (t: SceneObject | undefined) => (seq && t ? t.voice[promptKey] ?? t.voice.name : level.task),
-    [seq, promptKey, level.task],
+    (t: SceneObject | undefined) => (seq && t ? level.asks?.[t.id] ?? t.voice[promptKey] ?? t.voice.name : level.task),
+    [seq, promptKey, level.task, level.asks],
   );
 
   // Уровень «на слух»: загадка — настоящий звук, «Кто говорит: ква-ква?» голосом — только в подсказке (см. riddleSteps).

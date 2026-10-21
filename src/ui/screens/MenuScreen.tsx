@@ -10,24 +10,12 @@ import { sceneComplete, takeIntro } from '../../game/story';
 import type { SceneDef } from '../../game/types';
 import { RoundButton } from '../Button';
 import { AlbumIcon, ParentIcon, PartyIcon, StarIcon } from '../icons';
+import { MENU_PATH } from '../menuPath';
 
 // Тропинка уровней по лесу. Всё открыто сразу — малыша ничего не «запирает»,
 // а следующий уровень подсвечен, чтобы было понятно, куда нажимать.
 // В конце тропинки — праздник сцены: цель истории. Он оживает, когда пройдены все уровни.
 
-const PATH: { x: number; y: number }[] = [
-  { x: 250, y: 840 },
-  { x: 470, y: 690 },
-  { x: 700, y: 820 },
-  { x: 900, y: 630 },
-  { x: 1100, y: 790 },
-  { x: 1300, y: 600 },
-  { x: 1480, y: 760 },
-  { x: 1660, y: 560 },
-  { x: 1480, y: 400 },
-  { x: 1660, y: 290 }, // ниже замка «для взрослых», чтобы подсветка не наезжала на него
-  { x: 1300, y: 330 }, // праздник леса (10 уровней)
-];
 
 const FINALE_SIZE = 200;
 
@@ -77,7 +65,7 @@ export function MenuScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene]);
 
-  const path = PATH.slice(0, scene.levels.length + (scene.story ? 1 : 0));
+  const path = MENU_PATH.slice(0, scene.levels.length + (scene.story ? 1 : 0));
   const finalePos = scene.story ? path[scene.levels.length] : null;
   const d = path.map((p, i) => (i === 0 ? `M${p.x} ${p.y}` : `Q${(path[i - 1].x + p.x) / 2} ${Math.min(path[i - 1].y, p.y) - 90} ${p.x} ${p.y}`)).join(' ');
 
@@ -93,7 +81,7 @@ export function MenuScreen({
       </svg>
 
       {scene.levels.map((lvl, i) => {
-        const p = PATH[i];
+        const p = MENU_PATH[i];
         const done = save.completed.includes(lvl.id);
         const isNext = i === next;
         const hero = scene.objects.find((o) => o.id === lvl.icon) ?? resolveTargets(scene, lvl)[0];

@@ -72,8 +72,12 @@ export const evening: SceneDef = {
     { id: 'evening_sound', type: 'sound', task: 'task_sound_intro', lead: 'evening_lead_sound', mode: 'sequence', prompt: 'sound', hideSilhouettes: true, query: { ids: ['toy_duck', 'bath_tap', 'evening_owl'] } },
     { id: 'evening_face', type: 'who', task: 'task_face', lead: 'evening_lead_face', icon: 'nose', query: { ids: ['nose', 'ear_l', 'ear_r'] } }, // наклейка — первая цель: мордочка, а не ушко
     { id: 'evening_wash', type: 'who', task: 'toothbrush_ask', lead: 'evening_lead_wash', mode: 'sequence', prompt: 'ask', query: { ids: ['toothbrush', 'towel', 'comb'] } },
+    // «Где спрятался?» — «на, в». Силуэты скрыты: искать по слову, а не по форме.
+    { id: 'evening_where1', type: 'place', task: 'task_where', lead: 'lead_hide', mode: 'sequence', hideSilhouettes: true, query: { ids: ['evening_cat', 'toothbrush', 'slippers'] }, asks: { evening_cat: 'where_evening_cat', toothbrush: 'where_toothbrush', slippers: 'where_slippers' } },
     { id: 'evening_paws', type: 'who', task: 'task_paws', lead: 'evening_lead_paws', icon: 'foot_r', query: { ids: ['paw_l', 'paw_r', 'foot_l', 'foot_r'] } },
     { id: 'evening_toys', type: 'attribute', task: 'task_toys', lead: 'evening_lead_toys', icon: 'boat', query: { kind: 'toy' } },
+    // «Где спрятался?» — «рядом, между».
+    { id: 'evening_where2', type: 'place', task: 'task_where2', lead: 'lead_hide2', mode: 'sequence', hideSilhouettes: true, query: { ids: ['towel', 'soap', 'toy_duck'] }, asks: { towel: 'where_towel', soap: 'where_soap', toy_duck: 'where_toy_duck' } },
     { id: 'evening_bed', type: 'attribute', task: 'task_bed', lead: 'evening_lead_bed', icon: 'pillow', query: { ids: ['pyjamas', 'slippers', 'pillow'] } },
     { id: 'evening_yellow', type: 'attribute', task: 'task_yellow', lead: 'evening_lead_yellow', icon: 'moon', query: { color: 'yellow' } },
   ],
