@@ -9,7 +9,7 @@
 //   node scripts/voice.mjs --csv            — выгрузить таблицу фраз в voice/phrases.csv (для SpeechKit и проверки)
 //
 // Ключ: GEMINI_API_KEY в файле .env (Google AI Studio → Create API key). В репозиторий .env не попадает.
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { PHRASES } from '../src/data/phrases.ts';
 import { phraseWeight, polish, splitPhrases, toMp3 } from './lib/audio.mjs';
 
@@ -44,6 +44,8 @@ const VERIFIED = 'voice/verified.txt';
 function writeVoice(id, pcm) {
   writeFileSync(`${OUT}/${PREFIX}${id}.mp3`, toMp3(pcm));
   if (SAMPLE) return;
+  // Старый оригинал для выравнивания (voice-level.mjs) больше не про эту запись — иначе выравнивание вернуло бы старую.
+  if (existsSync(`voice/raw/level-orig/${id}.mp3`)) unlinkSync(`voice/raw/level-orig/${id}.mp3`);
   // Новый файл не проверен ни расшифровкой (verified.txt), ни на слух (heard.txt, ведёт пользователь через voice:listen).
   for (const reg of [VERIFIED, 'voice/heard.txt']) {
     if (!existsSync(reg)) continue;
@@ -60,6 +62,12 @@ const STYLE = {
   // Было «медленно и чётко» — «Найди сову!» выходило заметно медленнее соседних фраз (замечание пользователя 20.10).
   curious: 'с интересом и лёгкой загадочностью, приглашая поиграть, в спокойном обычном темпе, чётко',
   gentle: 'мягко, сочувственно и спокойно',
+  // Задания уровня. 21.10: в стиле curious «Найди всех!» выходило протяжно, с загадочным нажимом на последнее слово,
+  // «Тише-тише…» — слишком медленно и с ударением на «кто» (замечания пользователя).
+  task:
+    'бодро и дружелюбно, как воспитательница предлагает малышу игру, в живом обычном темпе: вопрос — с естественной ' +
+    'вопросительной интонацией, а «Найди!» — коротко, весело и уверенно, без растягивания, без загадочности и без нажима ' +
+    'на последнее слово; если фраза начинается с «Тише-тише…», эти слова — вполголоса, дальше обычным голосом',
 };
 
 // Эхо по слогам — образец для повторения малышом: гласные без редукции, слог целиком

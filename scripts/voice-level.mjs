@@ -36,6 +36,11 @@ const kind = (id) =>
 const EXPRESSIVE = new Set(['эхо', 'звук', 'шёпот']);
 // Перепад громкости внутри задуман: звукоподражание в конце («Шур-шур!», «плюх!») и сочувственное «Кому-то грустно».
 const KEEP_SHAPE = new Set(['bush_name', 'fish_fact', 'bunny_fact', 'task_sad']); // «Прыг-скок!» — тоже
+// Правки на слух (пользователь, 21.10): применяются при каждом запуске от оригинала, иначе их затёр бы следующий проход.
+const MANUAL = {
+  next: { tempo: 1.15 }, // «Играем дальше?» — «слишком растянуто»
+  bye_sleep: { tempo: 1.12 }, // «Спокойной ночи!» — «сделай быстрее немного»
+};
 
 const decoder = new MPEGDecoder();
 await decoder.ready;
@@ -110,6 +115,7 @@ function setFlags(r) {
   r.fixUneven = !EXPRESSIVE.has(r.kind) && !KEEP_SHAPE.has(r.id) && r.uneven > UNEVEN_DB;
   // Пик выше −1 дБ (с учётом межотсчётных пиков mp3) может хрипеть на громких колонках — через ограничитель.
   r.fixLoud = Math.abs(r.i - target) > LOUD_TOL || r.tp > -1;
+  r.manual = MANUAL[r.id];
   r.target = target;
   return r;
 }
@@ -144,7 +150,7 @@ if (args.apply) {
   mkdirSync(ORIG, { recursive: true });
   let n = 0;
   for (const cur of rows) {
-    if (!cur.fixLoud && !cur.fixUneven && !cur.slow) continue;
+    if (!cur.fixLoud && !cur.fixUneven && !cur.slow && !cur.manual) continue;
     const file = `${DIR}/${cur.id}.mp3`;
     const orig = `${ORIG}/${cur.id}.mp3`;
     if (!existsSync(orig)) copyFileSync(file, orig);
@@ -153,7 +159,8 @@ if (args.apply) {
     const a = await analyze(orig);
     const r = setFlags({ id: cur.id, kind: cur.kind, ...a, ...lufs(orig), rate: a.speechSec / phraseWeight(PHRASES[cur.id].text) });
     // Окно выравнивателя ~0,5 с: фразы короткие, с окном 2 с он их почти не трогал.
-    const pre = [r.fixUneven && 'dynaudnorm=f=100:g=5:p=0.9:m=6', r.slow && `atempo=${r.slow.toFixed(3)}`].filter(Boolean);
+    const tempo = r.manual?.tempo ?? r.slow;
+    const pre = [r.fixUneven && 'dynaudnorm=f=100:g=5:p=0.9:m=6', tempo && `atempo=${tempo.toFixed(3)}`].filter(Boolean);
     const tmp = `${ORIG}/.tmp-${r.id}.wav`;
     execFileSync(ffmpeg, ['-v', 'error', '-y', '-i', orig, ...(pre.length ? ['-af', pre.join(',')] : []), '-ar', '24000', '-ac', '1', tmp]);
     // Усиление ровно на разницу с целью; короткие пики мягко срезает ограничитель (на речи 2–4 дБ среза не слышно).

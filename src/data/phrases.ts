@@ -7,7 +7,7 @@ export interface Phrase {
   text: string;
   stressed?: string;
   /** Подсказка интонации для нейросети. */
-  mood?: 'warm' | 'excited' | 'whisper' | 'gentle' | 'curious';
+  mood?: 'warm' | 'excited' | 'whisper' | 'gentle' | 'curious' | 'task';
 }
 
 export const PHRASES = {
@@ -27,13 +27,13 @@ export const PHRASES = {
   bye_sleep: { text: 'Все зверята уснули. Спокойной ночи!', stressed: 'Все звер+ята усн+ули. Спок+ойной н+очи!', mood: 'whisper' },
 
   // --- задания уровней ---
-  task_sound_intro: { text: 'Слушай внимательно! Кто так говорит?', stressed: 'Сл+ушай вним+ательно! Кто так говор+ит?', mood: 'curious' },
-  task_sleep: { text: 'Тише-тише… Найди всех, кто спит.', stressed: 'Т+ише-т+ише… Найд+и всех, кто спит.', mood: 'whisper' },
-  task_red: { text: 'Найди всё красное!', stressed: 'Найд+и всё кр+асное!', mood: 'curious' },
-  task_on_tree: { text: 'Кто сидит на дереве? Найди!', stressed: 'Кто сид+ит на д+ереве? Найд+и!', mood: 'curious' },
-  task_pond: { text: 'Кто живёт в пруду? Найди всех!', stressed: 'Кто живёт в пруд+у? Найд+и всех!', mood: 'curious' },
-  task_yellow: { text: 'Найди всё жёлтое, как солнышко!', stressed: 'Найд+и всё жёлтое, как с+олнышко!', mood: 'curious' },
-  task_bugs: { text: 'Найди жучков и букашек!', stressed: 'Найд+и жучк+ов и бук+ашек!', mood: 'curious' },
+  task_sound_intro: { text: 'Слушай внимательно! Кто так говорит?', stressed: 'Сл+ушай вним+ательно! Кто так говор+ит?', mood: 'task' },
+  task_sleep: { text: 'Тише-тише… Найди всех, кто спит.', stressed: 'Т+ише-т+ише… Найд+и всех, кто спит.', mood: 'task' },
+  task_red: { text: 'Найди всё красное!', stressed: 'Найд+и всё кр+асное!', mood: 'task' },
+  task_on_tree: { text: 'Кто сидит на дереве? Найди!', stressed: 'Кто сид+ит на д+ереве? Найд+и!', mood: 'task' },
+  task_pond: { text: 'Кто живёт в пруду? Найди всех!', stressed: 'Кто живёт в пруд+у? Найд+и всех!', mood: 'task' },
+  task_yellow: { text: 'Найди всё жёлтое, как солнышко!', stressed: 'Найд+и всё жёлтое, как с+олнышко!', mood: 'task' },
+  task_bugs: { text: 'Найди жучков и букашек!', stressed: 'Найд+и жучк+ов и бук+ашек!', mood: 'task' },
   task_sad: { text: 'Кому-то грустно. Найди и пожалей!', stressed: 'Ком+у-то гр+устно. Найд+и и пожал+ей!', mood: 'gentle' },
 
   // --- белочка ---
@@ -146,9 +146,9 @@ export const PHRASES = {
 
   // ===== ФЕРМА =====
   // --- задания ---
-  task_eat: { text: 'Кто кушает? Найди всех!', stressed: 'Кто к+ушает? Найд+и всех!', mood: 'curious' },
-  task_garden: { text: 'Что растёт на грядке? Найди овощи!', stressed: 'Что растёт на гр+ядке? Найд+и +овощи!', mood: 'curious' },
-  task_fence: { text: 'Кто забрался на забор? Найди!', stressed: 'Кто забр+ался на заб+ор? Найд+и!', mood: 'curious' },
+  task_eat: { text: 'Кто кушает? Найди всех!', stressed: 'Кто к+ушает? Найд+и всех!', mood: 'task' },
+  task_garden: { text: 'Что растёт на грядке? Найди овощи!', stressed: 'Что растёт на гр+ядке? Найд+и +овощи!', mood: 'task' },
+  task_fence: { text: 'Кто забрался на забор? Найди!', stressed: 'Кто забр+ался на заб+ор? Найд+и!', mood: 'task' },
   // --- коровка (эхо — общее с божьей коровкой: «ко-ров-ка») ---
   cow_ask: { text: 'Найди коровку!', stressed: 'Найд+и кор+овку!' },
   cow_name: { text: 'Это коровка.', stressed: '+Это кор+овка.' },
@@ -242,8 +242,8 @@ export const PHRASES = {
 
   // ===== ДВОР =====
   // --- задания ---
-  task_toys: { text: 'Найди все игрушки!', stressed: 'Найд+и все игр+ушки!', mood: 'curious' },
-  task_sky: { text: 'Что летает в небе? Найди!', stressed: 'Что лет+ает в н+ебе? Найд+и!', mood: 'curious' },
+  task_toys: { text: 'Найди все игрушки!', stressed: 'Найд+и все игр+ушки!', mood: 'task' },
+  task_sky: { text: 'Что летает в небе? Найди!', stressed: 'Что лет+ает в н+ебе? Найд+и!', mood: 'task' },
   // --- общие названия детей ---
   girl_name: { text: 'Это девочка.', stressed: '+Это д+евочка.' },
   boy_name: { text: 'Это мальчик.', stressed: '+Это м+альчик.' },
