@@ -11,6 +11,8 @@
 // Ключ: GEMINI_API_KEY в файле .env (Google AI Studio → Create API key). В репозиторий .env не попадает.
 import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { PHRASES } from '../src/data/phrases.ts';
+import { requiredPhrases } from '../src/data/release.ts';
+import { ALL_SCENES } from '../src/data/scenes/index.ts';
 import { phraseWeight, polish, splitPhrases, toMp3 } from './lib/audio.mjs';
 
 const args = Object.fromEntries(
@@ -190,11 +192,13 @@ mkdirSync(OUT, { recursive: true });
 let made = 0;
 let skipped = 0;
 const failed = [];
-// Сначала то, что звучит чаще всего: приветствие, похвала, задания, герои первых уровней.
+// Сначала фразы, без которых не собрать релиз (общие + выпускаемые сцены, src/data/release.ts), потом будущие сцены.
+// Внутри — то, что звучит чаще всего: приветствие, похвала, задания, герои первых уровней.
 const PRIORITY = [/^welcome|^praise|^win$|^sticker$|^hint/, /^task_/, /^(squirrel|hedgehog|bunny)_/, /^(owl|duck|frog|bee|fox|bear)_/];
+const forRelease = new Set(requiredPhrases(ALL_SCENES, Object.keys(PHRASES)));
 const rank = (id) => {
   const i = PRIORITY.findIndex((re) => re.test(id));
-  return i === -1 ? PRIORITY.length : i;
+  return (forRelease.has(id) ? 0 : PRIORITY.length + 1) + (i === -1 ? PRIORITY.length : i);
 };
 const ordered = Object.entries(PHRASES).sort(([a], [b]) => rank(a) - rank(b));
 // --skip-echo: без «Скажи: бе-лоч-ка!». Модели 3.8 читают слоги слитно (20.10: паузы 0–0,3 с против 0,6–1 с у основной),
