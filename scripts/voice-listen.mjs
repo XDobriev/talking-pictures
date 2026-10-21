@@ -1,6 +1,8 @@
 // Страница для прослушивания озвучки человеком: voice/listen.html (открывается прямо с диска).
 //   npm run voice:listen            — все готовые фразы
 //   npm run voice:listen -- --new   — только ещё не оценённые на слух (нет в voice/heard.txt)
+//   npm run voice:listen -- --compare=sfx-21-10,tasks-21-10 — сверху варианты на выбор из voice-compare/<папка>/
+//   npm run voice:listen -- --recheck — все фразы с чистыми оценками (прежние отметки в браузере не подхватываются)
 // На странице: текст фразы, кнопка «играть», оценка «пойдёт» / «переделать» + причина.
 // Оценки хранятся в браузере; «Скопировать итог» даёт текст, который нужно вставить Claude.
 // Оценка сбрасывается сама, если файл переозвучили (ключ — id + размер файла).
@@ -12,6 +14,7 @@ import { PHRASES } from '../src/data/phrases.ts';
 const DIR = 'src/assets/voice';
 const OUT = 'voice/listen.html';
 const onlyNew = process.argv.includes('--new');
+const storeKey = process.argv.includes('--recheck') ? `tp-voice-recheck-${Date.now()}` : 'tp-voice-listen';
 const heard = new Set(existsSync('voice/heard.txt') ? readFileSync('voice/heard.txt', 'utf8').split(/\s+/).filter(Boolean) : []);
 const verified = new Set(existsSync('voice/verified.txt') ? readFileSync('voice/verified.txt', 'utf8').split(/\s+/).filter(Boolean) : []);
 const files = new Set(readdirSync(DIR).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')));
@@ -56,6 +59,41 @@ const sfxItems = [...readFileSync(`${SFX}/LICENSES.md`, 'utf8').matchAll(/^\| `(
 if (sfxItems.length) groups.unshift({ g: 'sfx', title: 'Звуки животных — узнаётся ли, кто это?', items: sfxItems });
 items.push(...sfxItems);
 
+// --compare=sfx-21-10,tasks-21-10 — варианты на выбор из voice-compare/<папка>/ (в игру не попали), в начале страницы.
+// «a-было-<id>» / «b-стало-<id>» — пара для фразы; «<имя>-N» — варианты звука (подписи — из ИСТОЧНИКИ.md рядом).
+// В итоге — как «cmp:<папка>/<файл>».
+const compare = process.argv.find((a) => a.startsWith('--compare='))?.split('=')[1]?.split(',') ?? [];
+const cmpGroups = [];
+for (const folder of compare) {
+  const dir = `voice-compare/${folder}`;
+  if (!existsSync(dir)) continue;
+  const notes = existsSync(`${dir}/ИСТОЧНИКИ.md`)
+    ? Object.fromEntries([...readFileSync(`${dir}/ИСТОЧНИКИ.md`, 'utf8').matchAll(/^\| `([\w-]+)\.mp3` \| ([^|]+) \|/gm)].map(([, f, w]) => [f, w.trim()]))
+    : {};
+  const byKey = new Map();
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.mp3')).sort()) {
+    const name = f.replace(/\.mp3$/, '');
+    const pair = name.match(/^[ab]-(было|стало)-(.+)$/);
+    const key = pair ? pair[2] : name.replace(/-\d+$/, '');
+    const phrase = pair && PHRASES[key];
+    const it = {
+      id: `cmp:${folder}/${name}`,
+      text: pair ? `${pair[1] === 'было' ? 'Было' : 'Стало'}: ${phrase?.text ?? key}` : `Вариант ${name.match(/-(\d+)$/)?.[1] ?? ''} — ${notes[name] ?? name}`,
+      stressed: '',
+      group: `cmp:${folder}/${key}`,
+      size: statSync(`${dir}/${f}`).size,
+      verified: true,
+      src: `../${dir}/${f}`,
+      reasons: pair ? ['лучше другой', 'интонация', 'быстро', 'медленно', 'ударение'] : ['не узнаётся', 'шум', 'тихо', 'громко', 'обрезано'],
+    };
+    if (!byKey.has(key)) byKey.set(key, { title: pair ? `«${phrase?.text ?? key}» — было или стало? Пометь «пойдёт» лучший` : `Выбери вариант: ${(notes[name] ?? key).split(':')[0]} — пометь «пойдёт» подходящие`, items: [] });
+    byKey.get(key).items.push(it);
+  }
+  for (const [key, g] of byKey) cmpGroups.push({ g: `cmp:${folder}/${key}`, ...g });
+}
+groups.unshift(...cmpGroups);
+items.push(...cmpGroups.flatMap((g) => g.items));
+
 const html = `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Прослушивание озвучки</title>
@@ -92,7 +130,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-
 <script>
 const GROUPS = ${JSON.stringify(groups)};
 const REASONS = ['ударение', 'интонация', 'быстро', 'медленно', 'обрезано', 'лишние слова', 'другой голос'];
-const KEY = 'tp-voice-listen';
+const KEY = ${JSON.stringify(storeKey)};
 let marks = {};
 try { marks = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(marks)); } catch {} };
