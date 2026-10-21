@@ -148,6 +148,10 @@ const SYNTH: Record<SfxName, () => void> = {
   boil: () => {
     [0, 0.12, 0.22, 0.36].forEach((d, i) => tone('sine', 280 + i * 60, 800, 0.09, 0.18, d));
   },
+  // «Тук-тук» перед загадкой на слух (настоящая запись — src/assets/sfx/knock.mp3).
+  knock: () => {
+    [0, 0.22].forEach((d) => noise(0.06, 500, 1, 0.3, d, 'lowpass'));
+  },
   whoosh: () => noise(0.4, 900, 0.6, 0.15, 0, 'lowpass'),
   grunt: () => {
     tone('triangle', 160, 110, 0.22, 0.25);

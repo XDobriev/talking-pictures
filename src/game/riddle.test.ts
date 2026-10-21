@@ -7,9 +7,13 @@ import { riddleSteps } from './riddle';
 describe('загадка на слух', () => {
   const frog = SCENES.flatMap((s) => s.objects).find((o) => o.id === 'frog')!;
 
-  it('сначала настоящий звук, голос «ква-ква» — только подсказкой', () => {
-    expect(riddleSteps(frog, false)).toEqual([{ sfx: 'croak' }]);
+  it('новая загадка: тук-тук → «Кто там?» → настоящий звук; голос «ква-ква» — только подсказкой, без стука', () => {
+    expect(riddleSteps(frog, false)).toEqual([{ sfx: 'knock' }, { say: 'who_there' }, { sfx: 'croak' }]);
     expect(riddleSteps(frog, true)).toEqual([{ sfx: 'croak' }, { say: 'frog_sound' }]);
+  });
+
+  it('стук — настоящая запись', () => {
+    expect(existsSync('src/assets/sfx/knock.mp3')).toBe(true);
   });
 
   for (const scene of SCENES)

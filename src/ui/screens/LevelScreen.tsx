@@ -108,12 +108,22 @@ export function LevelScreen({
   const playRiddle = useCallback(async (t: SceneObject, withVoice: boolean) => {
     const key = ++riddleKey.current;
     stopVoice();
+    if (!withVoice) lastActivity.current = performance.now();
     for (const step of riddleSteps(t, withVoice)) {
       if (key !== riddleKey.current) return false;
-      if ('sfx' in step) await playSfx(step.sfx);
+      if ('sfx' in step) {
+        // «Тук-тук»: слот со знаком вопроса вздрагивает, как дверь, за которой кто-то есть.
+        if (step.sfx === 'knock') setWiggleKey((k) => k + 1);
+        await playSfx(step.sfx);
+      }
       else if (!(await say([step.say]))) return false;
     }
-    return key === riddleKey.current;
+    if (key !== riddleKey.current) return false;
+    // Новая загадка дозвучала — отсчёт до подсказки отсюда. Иначе длинное вступление (связка, задание, «тук-тук»)
+    // съедало 12 с, и подсказка вступала прямо поверх загадки. После самой подсказки отсчёт не сбрасываем —
+    // иначе вторая ступень (светлячок, пульсация) никогда не наступит.
+    if (!withVoice) lastActivity.current = performance.now();
+    return true;
   }, []);
 
   /** Повторить задание; withVoice — с подсказкой голосом (бездействие, касание слота, светлячок). */
@@ -144,7 +154,10 @@ export function LevelScreen({
       void say([...opening, level.task]).then((ok) => ok && playRiddle(targets[0], false));
     } else {
       const first = promptFor(targets[0]);
-      void say([...opening, ...(seq && level.task !== first ? [level.task, first] : [first])]);
+      // Отсчёт до подсказки — с конца задания, а не с открытия уровня (связка истории удлиняет вступление).
+      void say([...opening, ...(seq && level.task !== first ? [level.task, first] : [first])]).then((ok) => {
+        if (ok) lastActivity.current = performance.now();
+      });
     }
     return () => {
       stopVoice();

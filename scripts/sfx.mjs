@@ -48,6 +48,8 @@ const SOURCES = [
   // «Water drops dripping» с Викисклада — CC BY-SA, не подходит; берём «Drops of water #1» из BigSoundBank (CC0).
   { name: 'drops', id: 1384, who: 'кран: кап-кап' },
   { name: 'boil', commons: 'File:Boiling lentils.ogg', who: 'кастрюля: буль-буль' },
+  // «Тук-тук, кто там?» перед каждой загадкой на слух.
+  { name: 'knock', id: 95, max: 1.4, who: 'стук в дверь: тук-тук' },
 ];
 // Варианты на выбор по слуху (--candidates → voice-compare/sfx-21-10/, в игру не попадают):
 // овечку, лягушку и «белочку/мышку» 20.10 на слух не узнали.

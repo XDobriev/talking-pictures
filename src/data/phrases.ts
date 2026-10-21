@@ -59,7 +59,8 @@ export const PHRASES = {
   yard_lead_sad: { text: 'Перед игрой надо всех развеселить!', stressed: 'П+еред игр+ой н+адо всех развесел+ить!', mood: 'gentle' },
 
   // --- задания уровней ---
-  task_sound_intro: { text: 'Слушай внимательно! Кто так говорит?', stressed: 'Сл+ушай вним+ательно! Кто так говор+ит?', mood: 'task' },
+  who_there: { text: 'Кто там?', stressed: 'Кто т+ам?', mood: 'curious' },
+  task_sound_intro:{ text: 'Слушай внимательно! Кто так говорит?', stressed: 'Сл+ушай вним+ательно! Кто так говор+ит?', mood: 'task' },
   task_sleep: { text: 'Тише-тише… Найди всех, кто спит.', stressed: 'Т+ише-т+ише… Найд+и всех, кто спит.', mood: 'task' },
   task_red: { text: 'Найди всё красное!', stressed: 'Найд+и всё кр+асное!', mood: 'task' },
   task_on_tree: { text: 'Кто сидит на дереве? Найди!', stressed: 'Кто сид+ит на д+ереве? Найд+и!', mood: 'task' },

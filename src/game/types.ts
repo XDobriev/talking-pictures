@@ -73,6 +73,7 @@ export type SfxName =
   | 'bubble'
   | 'drops'
   | 'boil'
+  | 'knock'
   | 'whoosh'
   | 'sparkle'
   | 'grunt'
