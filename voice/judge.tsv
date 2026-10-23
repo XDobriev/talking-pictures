@@ -1,0 +1,184 @@
+id	замечания
+bunny_echo	
+bunny_fact	
+bunny_name	
+fox_ask	
+fox_echo	
+fox_fact	
+fox_name	
+hedgehog_echo	
+hedgehog_fact	
+hedgehog_name	
+hedgehog_sound	
+hint_firefly	
+hint_look	
+owl_fact	
+owl_name	
+owl_sound	
+praise_1	
+praise_2	
+praise_3	ударение: Здорово: здорОво
+praise_4	ударение: Точно: точнО
+praise_5	
+squirrel_fact	
+squirrel_name	
+sticker	
+task_bugs	
+task_on_tree	
+task_red	
+task_sad	
+task_yellow	ударение: жёлтое: жёлтОе
+tit_ask	ударение: синичку: синИчку
+tit_fact	
+tit_name	
+tutorial_tap	
+welcome	ударение: светлячок: светлячОк
+win	ударение: найдено: нАйдено
+amanita_echo	
+amanita_name	
+apple_echo	ударение: яблочко: яб-ЛОЧ-ко
+ball_ask	
+ball_echo	
+ball_fact	ударение: красный: крАснЫй; ударение: круглый: крУглЫй; дефект: лишнее слово: и; дефект: лишний звук: пауза между прыг и скок
+ball_name	ударение: мячик: мЯчик
+barn_name	ударение: сарай: сАрай
+bear_ask	
+bear_echo	
+bear_fact	
+bear_helped	
+bear_name	дефект: лишнее слово 'Это' в начале записи
+bee_ask	
+bee_echo	
+bee_fact	
+bee_name	
+bee_sound	
+boletus_echo	
+boy_ball_ask	ударение: играет: игрАет
+boy_ball_fact	ударение: Мальчик: мАльчик; ударение: пинает: пинАет
+boy_bike_ask	
+boy_bike_echo	ударение: едет: едЕт
+boy_bike_fact	
+boy_bike_sound	
+boy_name	
+boy_slide_fact	
+bucket_ask	
+bucket_echo	ударение: ведёрко: вЕдёрко
+bucket_name	
+bunny_ask	
+bush_name	ударение: Шур-шур: шУр-шУр; дефект: лишнее слово
+butterfly_echo	ударение: бабочка: бАбочка
+butterfly_fact	
+butterfly_name	ударение: бабочка: бАбочка
+bye_sleep	
+cabbage_echo	
+carrot_echo	
+car_fact	
+car_name	
+cat_echo	
+cat_sound	
+chick_ask	ударение: цыплёнка: цЫплёнка
+chick_echo	
+cow_ask	ударение: коровку: корОвку
+doghouse_name	
+dog_ask	ударение: Найди: нАйди; ударение: щенка: щЕнка
+dog_echo	
+duck_ask	
+duck_echo	
+duck_fact	
+duck_name	
+duck_sound	
+farm_lead_fence	ударение: забираться: забирАться
+farm_lead_sound	ударение: проснулся: проснУлся
+fence_name	ударение: забор: зАбор
+fish_echo	
+fish_fact	
+fish_name	
+flower_name	
+forest_lead_sound	ударение: идут: идУт
+frog_ask	
+frog_echo	
+frog_fact	
+frog_name	
+frog_sound	ударение: говорит: говорИт; дефект: проглоченное слово: ожидалось 'ква-ква', произнесено 'ква, ква'
+garden_name	ударение: грядка: грЯдкА
+girl_name	
+girl_rope_fact	
+girl_swing_ask	
+girl_swing_fact	
+goat_ask	
+goat_echo	
+goose_echo	
+goose_sound	
+haystack_name	
+hedgehog_ask	
+hen_ask	
+hen_echo	
+horse_ask	ударение: лошадку: лошАдку
+horse_echo	
+kid_name	
+kid_sand_fact	
+kite_echo	
+ladybug_echo	
+lead_hide	
+lead_hide2	
+lead_up	
+mouse_ask	
+mouse_echo	
+next	ударение: Играем: игрАем
+owl_ask	
+owl_echo	
+pig_ask	
+pig_echo	
+pumpkin_echo	
+rooster_echo	
+rooster_sound	
+scooter_ask	
+scooter_echo	
+sheep_echo	
+sheep_sound	
+snail_echo	
+snail_fact	
+snail_name	ударение: улитка: улИтка
+sparrow_fact	ударение: Воробей: воробЕй; ударение: сидит: сИдит; ударение: дереве: дерЕве; ударение: чирик: чИрик; дефект: лишнее слово: пропущено 'чик-' перед 'чирик'
+sparrow_name	
+squirrel_ask	
+squirrel_echo	
+squirrel_sound	
+stump_name	
+sunflower_echo	
+task_bed	
+task_dishes	ударение: посуду: посУду
+task_face	
+task_paws	
+task_pond	ударение: живёт: жИвёт; ударение: пруду: прУду
+task_sleep	дефект: лишнее слово в начале; дефект: несоответствие ожидаемому тексту
+task_sound_intro	
+task_stove	
+tomato_echo	
+tractor_echo	
+where_apple	
+where_banana	
+where_bear	
+where_boy_sad	
+where_car	
+where_chick	
+where_dog	
+where_frog	
+where_girl_sad	
+where_goose	
+where_hedgehog	
+where_kid_sand	
+where_kitchen_girl	
+where_kitchen_mouse	
+where_kitten	
+where_ladybug	
+where_mouse	
+where_owl	
+where_parrot	
+where_pig	
+where_scooter	
+where_sparrow	
+where_tractor	
+who_there	
+yard_lead_sound	
+yard_lead_verbs2	
