@@ -52,6 +52,11 @@ const linted = run(['scripts/voice-lint.mjs', '--unverified', '--delete-bad']);
 const checked = run(['scripts/voice-qa.mjs', '--unverified', '--no-trim', '--delete-bad']);
 // Общая громкость (−14 LUFS), выравнивание внутри фразы и темп — как у уже выровненных (см. voice-level.mjs).
 const leveled = run(['scripts/voice-level.mjs', '--apply']);
+// Whisper на компьютере, без лимитов: второе мнение к расшифровке и запасная проверка того, что Gemini не успел.
+const whispered = run(['scripts/voice-whisper.mjs', '--verify']);
+// Оценщик (ударения, интонация, второй голос) — последним: тратит тот же лимит, что расшифровка, а она важнее;
+// и после выравнивания, иначе изменённый файл оценивался бы второй раз. Ничего не удаляет, только пополняет «послушать».
+const judgedNow = run(['scripts/voice-judge.mjs']);
 
 const phrases = readFileSync('src/data/phrases.ts', 'utf8').match(/^\s+\w+: \{ text:/gm)?.length ?? 0;
 const files = readdirSync('src/assets/voice').filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, ''));
@@ -61,7 +66,7 @@ const summary =
   `${day}: озвучено ${files.length} из ${phrases}, проверено ${files.length - unchecked}` +
   `${unchecked ? `, НЕ проверено ${unchecked} (проверятся при следующем запуске)` : ''}` +
   `${broken ? `. Прошлый запуск (${broken}) оборвался` : ''}. ` +
-  `Озвучка: ${voiced} | Форма звука: ${linted} | Расшифровка: ${checked} | Выравнивание: ${leveled}`;
+  `Озвучка: ${voiced} | Форма звука: ${linted} | Расшифровка: ${checked} | Выравнивание: ${leveled} | Whisper: ${whispered} | Оценщик: ${judgedNow}`;
 say(`\n${summary}`);
 writeFileSync('voice/logs/last.txt', summary + '\n');
 // unlinkSync, а не rmSync: rmSync в этом пути (кириллица) молча не удаляет файл (23.10)

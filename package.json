@@ -18,6 +18,8 @@
     "voice": "node scripts/voice.mjs --batch=7 --model=gemini-2.5-flash-preview-tts",
     "voice:qa": "node scripts/voice-qa.mjs",
     "voice:lint": "node scripts/voice-lint.mjs",
+    "voice:judge": "node scripts/voice-judge.mjs",
+    "voice:whisper": "node scripts/voice-whisper.mjs",
     "voice:listen": "node scripts/voice-listen.mjs",
     "sfx": "node scripts/sfx.mjs",
     "promo": "node scripts/promo-texts.mjs && npm run build && node scripts/promo.mjs",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@breezystack/lamejs": "^1.2.7",
+    "@huggingface/transformers": "^3.8.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/canvas-confetti": "^1.9.0",
     "@types/howler": "^2.2.12",

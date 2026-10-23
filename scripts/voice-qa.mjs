@@ -8,20 +8,11 @@ import { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync, mkdir
 import { MPEGDecoder } from 'mpg123-decoder';
 import { PHRASES } from '../src/data/phrases.ts';
 import { normText, polish, similarity, toMp3 } from './lib/audio.mjs';
+import { gemini, mp3Part, TEXT_MODELS } from './lib/gemini.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => [a.replace(/^--/, '').split('=')[0], a.split('=')[1] ?? true]));
-if (existsSync('.env')) {
-  for (const line of readFileSync('.env', 'utf8').split(/\r?\n/)) {
-    const m = line.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/);
-    if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
-  }
-}
 const DIR = 'src/assets/voice';
-// У каждой модели свой суточный лимит: кончился у одной — берём следующую. 2.5-flash закрыта для новых ключей.
-const MODELS = args.model
-  ? String(args.model).split(',')
-  : ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
-let MODEL = MODELS.shift();
+const ask = gemini(args.model ? String(args.model).split(',') : TEXT_MODELS);
 // Реестр проверенных: id, прошедшие расшифровку. voice.mjs вычёркивает id, когда переписывает файл.
 // --unverified — проверить всё, чего в реестре нет (так не теряются файлы, чья проверка упала из-за сети).
 const VERIFIED = 'voice/verified.txt';
@@ -58,24 +49,10 @@ decoder.free();
 console.log(`Тишина подрезана: ${files.length} файлов`);
 
 // ---------- 2. расшифровка ----------
-// Перегрузка (5xx) и тайм-аут — не лимит: подождать и повторить, после двух неудач — другая модель
-// (перегруженная — в конец очереди, она ещё пригодится). Не больше 8 попыток на запрос.
+// Повторы, перегрузка и лимиты — в lib/gemini.mjs.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function busy(batch, attempt, tries, why) {
-  if (tries >= 7) throw new Error(`${why}: модели перегружены, попробую при следующем --unverified`);
-  if (tries % 3 === 2 && MODELS.length) {
-    MODELS.push(MODEL);
-    MODEL = MODELS.shift();
-    console.log(`  … ${why}, переключаюсь на ${MODEL}`);
-  } else {
-    const wait = 10 * (tries + 1);
-    console.log(`  … ${why}, повтор через ${wait} с`);
-    await sleep(wait * 1000);
-  }
-  return transcribe(batch, attempt, tries + 1);
-}
 
-async function transcribe(batch, attempt = 0, tries = 0) {
+async function transcribe(batch) {
   // Пачкой модель путает порядок ответов, поэтому надёжен только режим по одному (--size=1): там JSON не нужен
   const single = batch.length === 1;
   const parts = [
@@ -86,42 +63,9 @@ async function transcribe(batch, attempt = 0, tries = 0) {
           `(со всеми словами, включая звукоподражания). Ответь только JSON-массивом строк длиной ${batch.length}.`,
     },
   ];
-  for (const f of batch) parts.push({ inlineData: { mimeType: 'audio/mp3', data: readFileSync(`${DIR}/${f}`).toString('base64') } });
-  let res;
-  try {
-    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-      signal: AbortSignal.timeout(90000),
-      body: JSON.stringify({ contents: [{ parts }], generationConfig: single ? { temperature: 0 } : { responseMimeType: 'application/json', temperature: 0 } }),
-    });
-  } catch (e) {
-    return busy(batch, attempt, tries, e.name === 'TimeoutError' ? 'тайм-аут' : `сеть (${e.message})`);
-  }
-  if (res.status >= 500) return busy(batch, attempt, tries, `HTTP ${res.status}`);
-  if (res.status === 404 && MODELS.length) {
-    MODEL = MODELS.shift();
-    console.log(`  … модель недоступна, переключаюсь на ${MODEL}`);
-    return transcribe(batch, attempt, tries);
-  }
-  if (res.status === 429 && attempt < 4) {
-    // поминутный лимит — ждём, сколько просит сервер; суточный — ждать бессмысленно
-    const body = await res.text();
-    if (/PerDay/i.test(body)) {
-      if (!MODELS.length) throw Object.assign(new Error('суточный лимит исчерпан у всех моделей'), { daily: true });
-      MODEL = MODELS.shift();
-      console.log(`  … суточный лимит, переключаюсь на ${MODEL}`);
-      return transcribe(batch, attempt, tries);
-    }
-    const wait = Number(body.match(/"retryDelay":\s*"(\d+)/)?.[1] ?? 30) + 2;
-    console.log(`  … лимит в минуту, жду ${wait} с`);
-    await new Promise((r) => setTimeout(r, wait * 1000));
-    return transcribe(batch, attempt + 1, tries);
-  }
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const json = await res.json();
-  const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') ?? '[]';
-  return single ? [text.trim()] : JSON.parse(text);
+  for (const f of batch) parts.push(mp3Part(`${DIR}/${f}`));
+  const text = await ask(parts, single ? { temperature: 0 } : { responseMimeType: 'application/json', temperature: 0 });
+  return single ? [text.trim()] : JSON.parse(text || '[]');
 }
 
 const bad = [];

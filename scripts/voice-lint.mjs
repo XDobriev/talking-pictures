@@ -199,7 +199,10 @@ const suspect = new Map(
   (existsSync(SUSPECT) ? readFileSync(SUSPECT, 'utf8').split('\n') : []).filter(Boolean).map((l) => [l.split('\t')[0], l.split('\t')[1] ?? '']),
 );
 for (const r of rows) {
-  if (r.doubt.length && !r.bad.length) suspect.set(r.id, r.doubt.join('; '));
+  // замечания оценщика и Whisper («оценщик: …», «whisper: …») сохраняем; удалённый брак уходит из списка целиком
+  const judge = (suspect.get(r.id) ?? '').split(' | ').filter((s) => /^(оценщик|whisper):/.test(s));
+  const why = r.bad.length ? [] : [...(r.doubt.length ? [r.doubt.join('; ')] : []), ...judge];
+  if (why.length) suspect.set(r.id, why.join(' | '));
   else suspect.delete(r.id);
 }
 writeFileSync(SUSPECT, [...suspect].map(([id, why]) => `${id}\t${why}`).join('\n') + (suspect.size ? '\n' : ''));
