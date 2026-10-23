@@ -2,6 +2,7 @@
 //   npm run voice:listen            — все готовые фразы
 //   npm run voice:listen -- --new   — только ещё не оценённые на слух (нет в voice/heard.txt)
 //   npm run voice:listen -- --compare=sfx-21-10,tasks-21-10 — сверху варианты на выбор из voice-compare/<папка>/
+//   npm run voice:listen -- --suspect — только помеченные проверкой формы звука «послушать» (voice-lint.mjs), с причиной
 //   npm run voice:listen -- --recheck — все фразы с чистыми оценками (прежние отметки в браузере не подхватываются)
 // На странице: текст фразы, кнопка «играть», оценка «пойдёт» / «переделать» + причина.
 // Оценки хранятся в браузере; «Скопировать итог» даёт текст, который нужно вставить Claude.
@@ -17,6 +18,11 @@ const onlyNew = process.argv.includes('--new');
 const storeKey = process.argv.includes('--recheck') ? `tp-voice-recheck-${Date.now()}` : 'tp-voice-listen';
 const heard = new Set(existsSync('voice/heard.txt') ? readFileSync('voice/heard.txt', 'utf8').split(/\s+/).filter(Boolean) : []);
 const verified = new Set(existsSync('voice/verified.txt') ? readFileSync('voice/verified.txt', 'utf8').split(/\s+/).filter(Boolean) : []);
+// --suspect — только фразы, которые voice-lint.mjs пометил «послушать» (voice/suspect.txt: id<TAB>причина)
+const onlySuspect = process.argv.includes('--suspect');
+const suspect = new Map(
+  (existsSync('voice/suspect.txt') ? readFileSync('voice/suspect.txt', 'utf8').split('\n') : []).filter(Boolean).map((l) => [l.split('\t')[0], l.split('\t')[1] ?? '']),
+);
 const files = new Set(readdirSync(DIR).filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, '')));
 
 // Группа — герой («squirrel_ask» → «белочка»), общие фразы — отдельно.
@@ -28,7 +34,7 @@ const groupOf = (id) => {
 const title = (g) => (g ? (PHRASES[`${g}_name`]?.text ?? g).replace(/^Это\s+/, '').split(/[.!?…]/)[0] : 'Общие фразы и задания');
 
 const items = Object.entries(PHRASES)
-  .filter(([id]) => files.has(id) && (!onlyNew || !heard.has(id)))
+  .filter(([id]) => files.has(id) && (!onlyNew || !heard.has(id)) && (!onlySuspect || suspect.has(id)))
   .map(([id, p]) => ({
     id,
     text: p.text,
@@ -36,6 +42,7 @@ const items = Object.entries(PHRASES)
     group: groupOf(id),
     size: statSync(`${DIR}/${id}.mp3`).size,
     verified: verified.has(id),
+    suspect: suspect.get(id),
     src: `../${DIR}/${id}.mp3`,
   }));
 const groups = [...new Set(items.map((i) => i.group))].map((g) => ({ g, title: title(g), items: items.filter((i) => i.group === g) }));
@@ -45,7 +52,7 @@ const groups = [...new Set(items.map((i) => i.group))].map((g) => ({ g, title: t
 const SFX = 'src/assets/sfx';
 const sfxItems = [...readFileSync(`${SFX}/LICENSES.md`, 'utf8').matchAll(/^\| `(\w+)\.mp3` \| ([^|]+) \|/gm)]
   .map(([, name, who]) => ({ id: `sfx:${name}`, name, who: who.trim() }))
-  .filter((s) => existsSync(`${SFX}/${s.name}.mp3`) && (!onlyNew || !heard.has(s.id)))
+  .filter((s) => existsSync(`${SFX}/${s.name}.mp3`) && (!onlyNew || !heard.has(s.id)) && !onlySuspect)
   .map((s) => ({
     id: s.id,
     text: `Звук: ${s.who}`,
@@ -149,7 +156,7 @@ for (const g of GROUPS) {
       '<div class="verdict"><button class="ok">Пойдёт</button><button class="bad">Переделать</button></div>' +
       '<div class="why"></div>';
     r.querySelector('.text').textContent = it.text;
-    r.querySelector('.meta').textContent = it.id + (it.stressed ? ' · ударения: ' + it.stressed : '') + (it.verified ? '' : ' · не проверено расшифровкой');
+    r.querySelector('.meta').textContent = it.id + (it.stressed ? ' · ударения: ' + it.stressed : '') + (it.verified ? '' : ' · не проверено расшифровкой') + (it.suspect ? ' · проверка звука: ' + it.suspect : '');
     const why = r.querySelector('.why');
     for (const w of it.reasons || REASONS) { const b = document.createElement('button'); b.textContent = w; b.dataset.reason = w; why.append(b); }
     const inp = document.createElement('input'); inp.placeholder = 'что не так (необязательно)'; why.append(inp);

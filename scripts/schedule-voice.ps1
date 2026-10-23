@@ -16,7 +16,8 @@ if ($Remove) {
 
 $root = Split-Path -Parent $PSScriptRoot
 $node = (Get-Command node).Source
-$action = New-ScheduledTaskAction -Execute $node -Argument "`"$root\scripts\daily-voice.mjs`"" -WorkingDirectory $root
+# Без окна консоли (conhost --headless): 22.10 окно закрыли посреди проверки, и запуск оборвался (код 0xC000013A).
+$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless `"$node`" `"$root\scripts\daily-voice.mjs`"" -WorkingDirectory $root
 $trigger = New-ScheduledTaskTrigger -Daily -At '11:30'
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Settings $settings -Description 'Говорящие картинки: дозвучка фраз Gemini TTS + проверка расшифровкой' -Force | Out-Null

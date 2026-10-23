@@ -1,10 +1,13 @@
 // Ежедневная озвучка без участия человека (запускается Планировщиком заданий Windows, см. scripts/schedule-voice.ps1):
 //   1) voice.mjs озвучивает недостающие фразы, пока не кончится суточный лимит;
-//   2) voice-qa.mjs проверяет расшифровкой всё, чего нет в реестре voice/verified.txt, и удаляет брак
+//   2) voice-lint.mjs проверяет форму звука (эхо слитно, обрыв, чужой голос) и удаляет брак — до расшифровки,
+//      чтобы не тратить на него её лимит;
+//   3) voice-qa.mjs проверяет расшифровкой всё, чего нет в реестре voice/verified.txt, и удаляет брак
 //      (брак переозвучится завтра).
-// Лог — voice/logs/<дата>.log, последняя сводка — voice/logs/last.txt. В git ничего не коммитится.
+// Лог — voice/logs/<дата>.log (пишется по ходу, а не в конце: 22.10 процесс закрыли посреди проверки
+// и в логе не осталось ничего), последняя сводка — voice/logs/last.txt. В git ничего не коммитится.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, mkdirSync, readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,11 +17,22 @@ const day = new Date().toISOString().slice(0, 10);
 const log = `voice/logs/${day}.log`;
 const say = (s) => appendFileSync(log, `${s}\n`);
 
+// Метка «идёт запуск»: если она осталась от прошлого раза — тот запуск оборвался (компьютер выключили,
+// закрыли окно). Его незаконченные шаги доделают шаги этого запуска: проверки берут всё непроверенное.
+const RUNNING = 'voice/logs/running.txt';
+const broken = existsSync(RUNNING) ? readFileSync(RUNNING, 'utf8').trim() : '';
+if (broken) say(`! Прошлый запуск (${broken}) не закончился — его непроверенные файлы проверятся сейчас`);
+writeFileSync(RUNNING, new Date().toLocaleString('ru-RU'));
+
 function run(args) {
   say(`\n$ node ${args.join(' ')}  [${new Date().toLocaleTimeString('ru-RU')}]`);
-  const r = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 45 * 60 * 1000 });
-  say((r.stdout ?? '') + (r.stderr ?? ''));
-  return (r.stdout ?? '').trim().split('\n').at(-1) ?? '';
+  const from = statSync(log).size;
+  const fd = openSync(log, 'a');
+  spawnSync(process.execPath, args, { stdio: ['ignore', fd, fd], timeout: 45 * 60 * 1000 });
+  closeSync(fd);
+  const out = readFileSync(log).subarray(from).toString('utf8');
+  // «Assertion failed … async.c» — сбой Node на Windows при выходе после fetch, уже после итоговой строки
+  return out.trim().split('\n').filter((l) => !/^Assertion failed/.test(l)).at(-1) ?? '';
 }
 
 const extra = existsSync('voice/extra-models.txt') ? readFileSync('voice/extra-models.txt', 'utf8').split(/\s+/).filter(Boolean) : [];
@@ -34,13 +48,21 @@ for (const model of extra) {
   const plain = /^gemini-3\.8-/.test(model) ? ['--plain', '--skip-echo'] : [];
   voiced += ` | ${model}: ${run(['scripts/voice.mjs', '--batch=7', ...plain, `--model=${model}`])}`;
 }
+const linted = run(['scripts/voice-lint.mjs', '--unverified', '--delete-bad']);
 const checked = run(['scripts/voice-qa.mjs', '--unverified', '--no-trim', '--delete-bad']);
 // Общая громкость (−14 LUFS), выравнивание внутри фразы и темп — как у уже выровненных (см. voice-level.mjs).
 const leveled = run(['scripts/voice-level.mjs', '--apply']);
 
 const phrases = readFileSync('src/data/phrases.ts', 'utf8').match(/^\s+\w+: \{ text:/gm)?.length ?? 0;
-const files = readdirSync('src/assets/voice').filter((f) => f.endsWith('.mp3')).length;
-const verified = existsSync('voice/verified.txt') ? readFileSync('voice/verified.txt', 'utf8').split(/\s+/).filter(Boolean).length : 0;
-const summary = `${day}: озвучено ${files} из ${phrases}, проверено ${verified}. Озвучка: ${voiced} | Проверка: ${checked} | Выравнивание: ${leveled}`;
+const files = readdirSync('src/assets/voice').filter((f) => f.endsWith('.mp3')).map((f) => f.replace(/\.mp3$/, ''));
+const verified = new Set(existsSync('voice/verified.txt') ? readFileSync('voice/verified.txt', 'utf8').split(/\s+/).filter(Boolean) : []);
+const unchecked = files.filter((id) => !verified.has(id)).length;
+const summary =
+  `${day}: озвучено ${files.length} из ${phrases}, проверено ${files.length - unchecked}` +
+  `${unchecked ? `, НЕ проверено ${unchecked} (проверятся при следующем запуске)` : ''}` +
+  `${broken ? `. Прошлый запуск (${broken}) оборвался` : ''}. ` +
+  `Озвучка: ${voiced} | Форма звука: ${linted} | Расшифровка: ${checked} | Выравнивание: ${leveled}`;
 say(`\n${summary}`);
 writeFileSync('voice/logs/last.txt', summary + '\n');
+// unlinkSync, а не rmSync: rmSync в этом пути (кириллица) молча не удаляет файл (23.10)
+unlinkSync(RUNNING);

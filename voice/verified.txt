@@ -105,7 +105,6 @@ praise_5
 pumpkin_echo
 rooster_echo
 rooster_sound
-rowan_echo
 scooter_ask
 scooter_echo
 sheep_echo
@@ -121,7 +120,6 @@ squirrel_fact
 squirrel_name
 squirrel_sound
 sticker
-strawberry_echo
 stump_name
 sunflower_echo
 task_bed
