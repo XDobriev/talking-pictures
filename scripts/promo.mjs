@@ -42,6 +42,14 @@ try {
     const box = await page.locator(`[data-obj="${id}"]`).boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   };
+  /** Выход из уровня — удержание «домой» около секунды. */
+  const hold = async (testId, ms = 1300) => {
+    const box = await page.getByTestId(testId).first().boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(ms);
+    await page.mouse.up();
+  };
   const shot = async (name) => {
     await page.screenshot({ path: `${OUT}/${name}.png` });
     console.log(`✓ ${name}.png`);
@@ -79,7 +87,7 @@ try {
   await page.waitForTimeout(1600);
   await shot('screenshot-2-farm');
 
-  await tap('домой');
+  await hold('домой');
   await page.getByTestId('menu').waitFor({ timeout: 6000 });
   await tap('сцена yard');
   await page.waitForTimeout(700);
