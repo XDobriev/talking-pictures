@@ -6,7 +6,7 @@ import { playSfx } from '../../audio/sfx';
 import { SCENES } from '../../data/scenes';
 import { resolveTargets } from '../../game/query';
 import { useStore } from '../../game/store';
-import { sceneComplete, takeIntro } from '../../game/story';
+import { sceneComplete, takeIntro, untakeIntro } from '../../game/story';
 import type { SceneDef } from '../../game/types';
 import { RoundButton } from '../Button';
 import { AlbumIcon, ParentIcon, PartyIcon, StarIcon } from '../icons';
@@ -60,8 +60,15 @@ export function MenuScreen({
   // Новая сцена — сначала история: ради чего искать.
   useEffect(() => {
     if (!scene.story || !takeIntro(scene, save.completed)) return;
-    const t = setTimeout(() => void say([scene.story!.intro]), 700);
-    return () => clearTimeout(t);
+    let spoken = false;
+    const t = setTimeout(() => {
+      spoken = true;
+      void say([scene.story!.intro]);
+    }, 700);
+    return () => {
+      clearTimeout(t);
+      if (!spoken) untakeIntro(scene);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene]);
 

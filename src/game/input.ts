@@ -74,7 +74,14 @@ export function pickObject(
   if (!hits.length) return null;
   const dist = (o: SceneObject) => Math.hypot((px - o.rect.x) / o.rect.w, (py - o.rect.y) / o.rect.h);
   const preferred = hits.filter((o) => preferIds.has(o.id));
-  if (preferred.length) return preferred.sort((a, b) => dist(a) - dist(b))[0];
+  if (preferred.length) {
+    // Расширенный хитбокс цели не должен перебивать соседа: палец стоит на настоящем рисунке другой цели
+    // (щётка рядом с мылом) — это «маленькое открытие» про соседа, а не находка.
+    const onPreferred = preferred.some((o) => inside(o.rect, px, py));
+    const neighbours = onPreferred ? [] : hits.filter((o) => !preferIds.has(o.id) && o.findable && inside(o.rect, px, py));
+    if (neighbours.length) return neighbours.sort((a, b) => dist(a) - dist(b))[0];
+    return preferred.sort((a, b) => dist(a) - dist(b))[0];
+  }
   // Мелкие объекты поверх крупных декораций: сначала z, потом площадь, потом расстояние.
   return hits.sort(
     (a, b) => (b.z ?? 0) - (a.z ?? 0) || a.rect.w * a.rect.h - b.rect.w * b.rect.h || dist(a) - dist(b),

@@ -63,8 +63,9 @@
 
   /* Фокус с клавиатуры (родители на компьютере). Цвет ink, а не охра: охра на бумаге — 1,9:1, мало для кольца. */
   button:focus-visible {
-    outline: 6px solid var(--color-ink);
-    outline-offset: 5px;
+    /* !important: слоты панели задают рамку инлайн, иначе фокус на них неотличим от «текущего». */
+    outline: 6px solid var(--color-ink) !important;
+    outline-offset: 5px !important;
   }
 }
 

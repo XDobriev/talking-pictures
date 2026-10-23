@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PHRASES } from '../data/phrases';
 import { SCENES } from '../data/scenes';
-import { levelOpening, partyGuests, resetStory, sceneComplete, takeIntro } from './story';
+import { levelOpening, partyGuests, resetStory, sceneComplete, takeIntro, untakeIntro } from './story';
 
 const has = (id: string) => id in PHRASES;
 
@@ -42,6 +42,13 @@ describe('история сцен', () => {
     const s = SCENES[0];
     expect(takeIntro(s, [])).toBe(true);
     expect(levelOpening(s, s.levels[1], [])).toEqual([s.levels[1].lead]);
+  });
+
+  it('завязка, не прозвучавшая в меню (ушли раньше), сыграет в следующий раз', () => {
+    const s = SCENES[0];
+    expect(takeIntro(s, [])).toBe(true);
+    untakeIntro(s);
+    expect(takeIntro(s, [])).toBe(true);
   });
 
   it('пройденный уровень начинается сразу с задания', () => {

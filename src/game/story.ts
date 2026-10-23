@@ -22,6 +22,11 @@ export function takeIntro(scene: SceneDef, completed: string[]) {
   return true;
 }
 
+/** Завязка не прозвучала (ушли раньше): вернуть, чтобы она сыграла в следующий раз. */
+export function untakeIntro(scene: SceneDef) {
+  introHeard.delete(scene.id);
+}
+
 /** Что сказать перед заданием уровня: завязку сцены, связку уровня или ничего. */
 export function levelOpening(scene: SceneDef, level: LevelDef, completed: string[]): string[] {
   if (scene.story && takeIntro(scene, completed)) return [scene.story.intro];

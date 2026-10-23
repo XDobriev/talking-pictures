@@ -104,6 +104,9 @@ export function LevelScreen({
   // Уровень «на слух»: загадка — настоящий звук, «Кто говорит: ква-ква?» голосом — только в подсказке (см. riddleSteps).
   const soundLevel = level.prompt === 'sound';
   const riddleKey = useRef(0);
+  const finishTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  /** Вступление (завязка, связка, задание) дозвучало: до этого подсказки по бездействию не вступают. */
+  const introDone = useRef(false);
   /** Проиграть загадку; новая загадка или находка отменяет недоигранную. */
   const playRiddle = useCallback(async (t: SceneObject, withVoice: boolean) => {
     const key = ++riddleKey.current;
@@ -151,15 +154,21 @@ export function LevelScreen({
     track('level_start', { level: level.id });
     if (soundLevel) {
       // «Слушай внимательно! Кто так говорит?» → кваканье
-      void say([...opening, level.task]).then((ok) => ok && playRiddle(targets[0], false));
+      void say([...opening, level.task]).then((ok) => {
+        introDone.current = true;
+        return ok && playRiddle(targets[0], false);
+      });
     } else {
       const first = promptFor(targets[0]);
       // Отсчёт до подсказки — с конца задания, а не с открытия уровня (связка истории удлиняет вступление).
       void say([...opening, ...(seq && level.task !== first ? [level.task, first] : [first])]).then((ok) => {
+        introDone.current = true;
         if (ok) lastActivity.current = performance.now();
       });
     }
     return () => {
+      riddleKey.current++; // выход из уровня отменяет недоигранную загадку: она не зазвучит поверх меню
+      clearTimeout(finishTimer.current);
       stopVoice();
       platform.gameplayStop();
     };
@@ -172,6 +181,7 @@ export function LevelScreen({
     const id = setInterval(() => {
       const t = performance.now();
       setNow(t);
+      if (!introDone.current) lastActivity.current = t; // вступление ещё звучит — подсказка его не перебьёт
       const stage = hintStage(t - lastActivity.current, hintThresholds(level.query));
       setHint((prev) => {
         if (stage === prev) return prev;
@@ -191,9 +201,12 @@ export function LevelScreen({
     return () => clearInterval(id);
   }, [phase, sayPrompt, promptFor, seq, targets, level.id, level.query, soundLevel]);
 
-  const activity = () => {
+  const activity = (cancelRiddle = true) => {
     lastActivity.current = performance.now();
-    riddleKey.current++; // любое касание отменяет недоигранную загадку: голос не вступит поверх нового звука
+    if (cancelRiddle) {
+      riddleKey.current++; // касание по предмету отменяет недоигранную загадку: голос не вступит поверх нового звука
+      if (soundLevel) promptPending.current = true; // …и после ответа предмета загадка прозвучит заново
+    }
     if (hint) setHint(0);
   };
 
@@ -255,8 +268,9 @@ export function LevelScreen({
         done = true;
         win();
       };
-      void say(lines).then(finish);
-      setTimeout(finish, 12000);
+      // Прерванный рассказ (выход из уровня) победу не засчитывает.
+      void say(lines).then((ok) => ok && finish());
+      finishTimer.current = setTimeout(finish, 12000);
       return;
     }
     if (seq) {
@@ -282,7 +296,7 @@ export function LevelScreen({
   };
 
   const onEmpty = (x: number, y: number) => {
-    activity();
+    activity(false); // касание мимо предметов загадку не обрывает
     if (rage.current.tap(performance.now())) {
       particles.current?.spawn('bubbles', x, y);
       [0, 120, 260, 420].forEach((d) => setTimeout(() => playSfx('bubble'), d));
@@ -291,8 +305,12 @@ export function LevelScreen({
 
   const onSlot = (t: SceneObject) => {
     activity();
+    if (phase !== 'playing') return;
     if (found.has(t.id)) return void say([t.voice.name, ...(t.voice.fact ? [t.voice.fact] : [])]);
-    if (seq) return void sayPrompt(true);
+    if (seq) {
+      promptPending.current = false;
+      return void sayPrompt(true);
+    }
     void say([t.voice.ask ?? level.task]);
   };
 

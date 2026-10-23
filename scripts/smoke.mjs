@@ -1,5 +1,7 @@
 ﻿// Сквозная проверка в настоящем браузере: старт → уровень 1 → победа → «дальше» → меню → родительская зона → альбом.
 // Запуск: npm run build && npm run e2e   (скриншоты — в screenshots/)
+// Релизная сборка содержит только RELEASE_SCENES (лес, ферма, двор). Сцены «Кухня» и «Вечер» проверяются
+// в режиме со всеми сценами: E2E_ALL=1 npm run e2e   (поднимает vite dev, сборка не нужна).
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -8,7 +10,8 @@ const PORT = 4179;
 const OUT = 'screenshots';
 mkdirSync(OUT, { recursive: true });
 
-const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'pipe' });
+const ALL = !!process.env.E2E_ALL;
+const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', ALL ? 'dev' : 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'pipe' });
 await new Promise((resolve, reject) => {
   const t = setTimeout(() => reject(new Error('preview не стартовал')), 20000);
   server.stdout.on('data', (d) => {
@@ -48,6 +51,8 @@ const holdId = async (page, id, ms = 1300) => {
   await page.mouse.up();
 };
 
+// Пауза между касаниями целей: пока предыдущий герой летит в слот, касание не засчитывается; в dev полёт медленнее.
+const GAP = ALL ? 900 : 300;
 const results = [];
 const step = async (name, fn) => {
   try {
@@ -209,10 +214,41 @@ try {
     await page.screenshot({ path: `${OUT}/17-yard-verbs.png` });
     for (const id of ['girl_swing', 'boy_slide', 'girl_rope']) {
       await tapObj(id);
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(GAP);
     }
     await page.getByTestId('win').waitFor({ timeout: 15000 });
   });
+
+  if (ALL) {
+    // Победа в уровне 1 сцены -> «домой» в окне победы -> меню. Первое прохождение сцены идёт через завязку истории.
+    const winHome = async () => {
+      const box = await page.getByTestId('win').getByTestId('домой').boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.getByTestId('menu').waitFor({ timeout: 5000 });
+    };
+    await winHome(); // окно победы двора ещё открыто
+    const playLevel1 = async (scene, levelId, targets, shot) => {
+      await tapId(page, `сцена ${scene}`);
+      await page.waitForTimeout(900);
+      await page.screenshot({ path: `${OUT}/${shot}-menu.png` });
+      await tapId(page, 'уровень 1');
+      await page.locator(`[data-level="${levelId}"]`).waitFor({ timeout: 8000 });
+      await page.waitForTimeout(1200);
+      await page.screenshot({ path: `${OUT}/${shot}-level1.png` });
+      for (const id of targets) {
+        await tapObj(id);
+        await page.waitForTimeout(GAP);
+      }
+      await page.getByTestId('win').waitFor({ timeout: 15000 });
+      await page.waitForTimeout(2600);
+      await page.screenshot({ path: `${OUT}/${shot}-win.png` });
+      await winHome();
+    };
+    await step('кухня: меню и уровень 1 проходится', () => playLevel1('kitchen', 'kitchen_who1', ['grandma', 'kitchen_girl', 'kitchen_boy'], '18-kitchen'));
+    await step('вечер: меню и уровень 1 проходится', () => playLevel1('evening', 'evening_who1', ['toy_duck', 'boat', 'soap'], '19-evening'));
+  } else {
+    results.push('- кухня и вечер: пропущено — в релизной сборке этих сцен нет (RELEASE_SCENES); запуск со всеми сценами: E2E_ALL=1 npm run e2e');
+  }
 
   await step('телефон 6.1″ (844×390) — холст вписан', async () => {
     const phone = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });

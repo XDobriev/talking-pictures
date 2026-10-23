@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { evening } from '../data/scenes/evening';
 import { forest } from '../data/scenes/forest';
 import { RageDetector, hintStage, hintThresholds, hitRect, pickObject } from './input';
 
@@ -49,6 +50,13 @@ describe('hitRect', () => {
 });
 
 describe('pickObject', () => {
+  it('палец на рисунке соседней цели — это сосед, а не искомая цель с широким хитбоксом', () => {
+    const tb = evening.objects.find((o) => o.id === 'toothbrush')!;
+    const soap = evening.objects.find((o) => o.id === 'soap')!;
+    // левый край щётки уже в расширенном хитбоксе мыла, но ещё не в самом мыле
+    expect(pickObject(evening.objects, tb.rect.x - 0.8, tb.rect.y, 0.5, new Set(['soap']))?.id).toBe('toothbrush');
+    expect(pickObject(evening.objects, soap.rect.x, soap.rect.y, 0.5, new Set(['soap']))?.id).toBe('soap');
+  });
   it('в центре белочки находит белочку, а не берёзу', () => {
     const o = pickObject(forest.objects, 26.5, 21.5, 0.5, new Set());
     expect(o?.id).toBe('squirrel');
