@@ -18,7 +18,9 @@ $root = Split-Path -Parent $PSScriptRoot
 $node = (Get-Command node).Source
 # Без окна консоли (conhost --headless): 22.10 окно закрыли посреди проверки, и запуск оборвался (код 0xC000013A).
 $action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless `"$node`" `"$root\scripts\daily-voice.mjs`"" -WorkingDirectory $root
-$trigger = New-ScheduledTaskTrigger -Daily -At '11:30'
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+# Gemini работает только с VPN: daily-voice.mjs ждёт API 15 минут и, не дождавшись, выходит; поэтому ещё три попытки позже.
+# Если сегодня полный запуск уже был, повторные срабатывания сразу завершаются.
+$trigger = '11:30', '14:00', '17:00', '20:00' | ForEach-Object { New-ScheduledTaskTrigger -Daily -At $_ }
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -ExecutionTimeLimit (New-TimeSpan -Hours 2) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Settings $settings -Description 'Говорящие картинки: дозвучка фраз Gemini TTS + проверка расшифровкой' -Force | Out-Null
-Write-Output "Задача ${name}: каждый день в 11:30, лог — voice\logs\"
+Write-Output "Задача ${name}: каждый день в 11:30 (повторы 14:00, 17:00, 20:00), лог — voice\logs\"

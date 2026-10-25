@@ -17,6 +17,48 @@ const day = new Date().toISOString().slice(0, 10);
 const log = `voice/logs/${day}.log`;
 const say = (s) => appendFileSync(log, `${s}\n`);
 
+// Gemini работает только с включённым VPN: перед началом ждём, пока API ответит (до 15 минут — заодно
+// дожидаемся сети после пробуждения). Не дождались — ничего не запускаем (24.10 все 278 запросов упали
+// с «fetch failed»), Планировщик повторит запуск позже в тот же день.
+const LAST = 'voice/logs/last.txt';
+const NO_API = 'Нет доступа к Gemini';
+// Сегодня полный запуск уже был — повторные срабатывания Планировщика не нужны.
+if (existsSync(LAST)) {
+  const prev = readFileSync(LAST, 'utf8');
+  if (prev.startsWith(`${day}:`) && !prev.includes(NO_API)) process.exit(0);
+}
+
+function envKey() {
+  if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
+  if (!existsSync('.env')) return '';
+  return readFileSync('.env', 'utf8').match(/^\s*GEMINI_API_KEY\s*=\s*["']?([^"'\r\n]+)/m)?.[1] ?? '';
+}
+
+// true — API отвечает (VPN включён, сеть есть). Без VPN: fetch failed, таймаут или отказ по региону.
+async function geminiReachable() {
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1&key=${envKey()}`, {
+      signal: AbortSignal.timeout(15000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+let reachable = await geminiReachable();
+for (let i = 0; !reachable && i < 30; i++) {
+  if (i === 0) say(`[${new Date().toLocaleTimeString('ru-RU')}] Gemini недоступен (VPN выключен или нет сети) — жду до 15 минут`);
+  await new Promise((r) => setTimeout(r, 30000));
+  reachable = await geminiReachable();
+}
+if (!reachable) {
+  const msg = `${day}: ${NO_API} (включите VPN) — запуск пропущен, Планировщик повторит позже`;
+  say(msg);
+  writeFileSync(LAST, `${msg}\n`);
+  process.exit(0);
+}
+
 // Метка «идёт запуск»: если она осталась от прошлого раза — тот запуск оборвался (компьютер выключили,
 // закрыли окно). Его незаконченные шаги доделают шаги этого запуска: проверки берут всё непроверенное.
 const RUNNING = 'voice/logs/running.txt';
@@ -68,6 +110,6 @@ const summary =
   `${broken ? `. Прошлый запуск (${broken}) оборвался` : ''}. ` +
   `Озвучка: ${voiced} | Форма звука: ${linted} | Расшифровка: ${checked} | Выравнивание: ${leveled} | Whisper: ${whispered} | Оценщик: ${judgedNow}`;
 say(`\n${summary}`);
-writeFileSync('voice/logs/last.txt', summary + '\n');
+writeFileSync(LAST, summary + '\n');
 // unlinkSync, а не rmSync: rmSync в этом пути (кириллица) молча не удаляет файл (23.10)
 unlinkSync(RUNNING);

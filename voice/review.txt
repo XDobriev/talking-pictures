@@ -1,0 +1,2 @@
+amanita_fact
+boletus_name
